@@ -1,0 +1,265 @@
+@import "tailwindcss";
+
+/*
+ * Chave Leve Imóveis — identidade "Campus" (ver BRIEFING.md / DESIGN.md)
+ * Jovem, de app: azul elétrico para ação, verde-limão para destaque (sempre com texto escuro).
+ */
+@theme {
+  --color-fundo: #f3f5f8;
+  --color-superficie: #ffffff;
+  --color-tinta: #0b1220;
+  --color-suave: #5a6478;
+  --color-linha: rgb(11 18 32 / 0.1);
+  --color-acao: #2b4dff;
+  --color-acao-escuro: #1f3ce0;
+  --color-limao: #d7f75b;
+  --color-coracao: #e5484d;
+
+  --radius-cartao: 22px;
+  --radius-foto: 18px;
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-gaveta: cubic-bezier(0.32, 0.72, 0, 1);
+
+  --shadow-suave: 0 1px 2px rgb(11 18 32 / 0.05), 0 12px 32px -16px rgb(43 77 255 / 0.25);
+  --shadow-flutua: 0 2px 6px rgb(11 18 32 / 0.08), 0 24px 48px -16px rgb(11 18 32 / 0.3);
+}
+
+@theme inline {
+  --font-titulo: var(--font-sora);
+  --font-sans: var(--font-hanken);
+}
+
+:root {
+  --altura-cabecalho: 64px;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+  /* Lição da clínica: nada de scroll-padding no <html> (o Next abriria páginas roladas) */
+  [id] {
+    scroll-margin-top: calc(var(--altura-cabecalho) + env(safe-area-inset-top) + 1rem);
+  }
+  #conteudo > * {
+    scroll-margin-top: calc(var(--altura-cabecalho) + env(safe-area-inset-top));
+  }
+
+  body {
+    background: var(--color-fundo);
+    color: var(--color-tinta);
+    line-height: 1.5;
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-titulo);
+    font-weight: 600;
+    letter-spacing: -0.035em;
+    line-height: 1.05;
+    text-wrap: balance;
+  }
+  p,
+  li,
+  dd {
+    text-wrap: pretty;
+  }
+  a,
+  button,
+  label,
+  [role="button"] {
+    touch-action: manipulation;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-acao);
+    outline-offset: 3px;
+  }
+  input,
+  select,
+  textarea {
+    font-size: max(16px, 1em);
+  }
+}
+
+@utility px-margem {
+  padding-left: max(1rem, env(safe-area-inset-left, 0px));
+  padding-right: max(1rem, env(safe-area-inset-right, 0px));
+}
+
+/* Botões em pílula. Respondem ao toque no :active. */
+@utility botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 48px;
+  padding: 0 22px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  transition:
+    transform 140ms var(--ease-out),
+    background-color 160ms ease,
+    border-color 160ms ease;
+  &:active {
+    transform: scale(0.97);
+  }
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+    transform: none;
+  }
+}
+@utility botao-acao {
+  background: var(--color-acao);
+  color: #fff;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: var(--color-acao-escuro);
+    }
+  }
+}
+@utility botao-contorno {
+  background: var(--color-superficie);
+  border-color: var(--color-linha);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      border-color: rgb(11 18 32 / 0.3);
+    }
+  }
+}
+@utility botao-escuro {
+  background: var(--color-tinta);
+  color: #fff;
+}
+@utility botao-pequeno {
+  min-height: 40px;
+  padding: 0 16px;
+  font-size: 14px;
+}
+
+/* Fotos deslizando dentro do cartão */
+.trilho {
+  display: flex;
+  height: 100%;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+.trilho::-webkit-scrollbar {
+  display: none;
+}
+.trilho > * {
+  flex: none;
+  width: 100%;
+  height: 100%;
+  scroll-snap-align: start;
+}
+
+/* Coração: "pulinho" ao favoritar (raro e alegre, por isso pode ter mola) */
+.coracao svg {
+  transition: transform 160ms var(--ease-out);
+}
+.coracao:active svg {
+  transform: scale(0.85);
+}
+.coracao[aria-pressed="true"] svg {
+  animation: pulinho 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes pulinho {
+  0% {
+    transform: scale(0.8);
+  }
+  60% {
+    transform: scale(1.18);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.entra {
+  animation: entra 320ms var(--ease-out) both;
+  animation-delay: var(--atraso, 0ms);
+}
+@keyframes entra {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* Leaflet: pinos com preço */
+.leaflet-div-icon {
+  background: none;
+  border: 0;
+}
+.pino {
+  display: inline-block;
+  background: var(--color-superficie);
+  border-radius: 999px;
+  padding: 5px 10px;
+  font: 600 13px/1 var(--font-hanken), system-ui, sans-serif;
+  color: var(--color-tinta);
+  box-shadow: 0 2px 8px rgb(11 18 32 / 0.25);
+  white-space: nowrap;
+  transform: translate(-50%, -100%);
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    scale 160ms var(--ease-out);
+  transform-origin: bottom center;
+}
+.pino[data-ativo] {
+  background: var(--color-tinta);
+  color: #fff;
+  scale: 1.1;
+}
+.pino-ufsm {
+  display: inline-block;
+  transform: translate(-50%, -50%);
+  background: var(--color-limao);
+  border-radius: 999px;
+  padding: 5px 10px;
+  font: 600 12px/1 var(--font-hanken), system-ui, sans-serif;
+  color: var(--color-tinta);
+  box-shadow: 0 2px 8px rgb(11 18 32 / 0.25);
+}
+.leaflet-container {
+  font-family: var(--font-hanken), system-ui, sans-serif;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .entra {
+    animation: surge 200ms ease-out both;
+  }
+  .coracao[aria-pressed="true"] svg {
+    animation: none;
+  }
+  .botao,
+  .coracao svg,
+  .pino {
+    transition-property: opacity, background-color, border-color, color;
+  }
+}
+@keyframes surge {
+  from {
+    opacity: 0;
+  }
+}

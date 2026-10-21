@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Identidade — Chave Leve Imóveis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Albert+Sans:wght@400;500;600&family=Sora:wght@500;600;700&family=Hanken+Grotesk:wght@400;500;600&family=Newsreader:opsz,wght@6..72,500&family=Rethink+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* ===== Tokens de cada identidade (o resto é igual nas três) ===== */
+  body[data-id="chave"] {
+    --fundo: #ffffff; --superficie: #f6f6f4; --tinta: #18181b; --suave: #6b6b73; --linha: rgb(24 24 27 / 0.1);
+    --acao: #18181b; --acao-tinta: #fff; --destaque: #f2b705; --destaque-tinta: #18181b; --etiqueta: #fff3c4;
+    --f-titulo: "Bricolage Grotesque", system-ui, sans-serif; --peso-titulo: 700; --f-texto: "Albert Sans", system-ui, sans-serif; --espaco: -0.03em;
+    --raio-cartao: 16px; --raio-botao: 12px; --raio-foto: 14px;
+    --sombra: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px -12px rgb(0 0 0 / 0.18);
+  }
+  body[data-id="campus"] {
+    --fundo: #f3f5f8; --superficie: #ffffff; --tinta: #0b1220; --suave: #5a6478; --linha: rgb(11 18 32 / 0.1);
+    --acao: #2b4dff; --acao-tinta: #fff; --destaque: #d7f75b; --destaque-tinta: #0b1220; --etiqueta: #d7f75b;
+    --f-titulo: "Sora", system-ui, sans-serif; --peso-titulo: 600; --f-texto: "Hanken Grotesk", system-ui, sans-serif; --espaco: -0.035em;
+    --raio-cartao: 22px; --raio-botao: 999px; --raio-foto: 18px;
+    --sombra: 0 1px 2px rgb(11 18 32 / 0.05), 0 12px 32px -16px rgb(43 77 255 / 0.25);
+  }
+  body[data-id="lar"] {
+    --fundo: #ffffff; --superficie: #f3efe9; --tinta: #1f1b16; --suave: #6f675d; --linha: rgb(31 27 22 / 0.12);
+    --acao: #1f4d3a; --acao-tinta: #fff; --destaque: #1f4d3a; --destaque-tinta: #fff; --etiqueta: #e4ede7;
+    --f-titulo: "Newsreader", Georgia, serif; --peso-titulo: 500; --f-texto: "Rethink Sans", system-ui, sans-serif; --espaco: -0.02em;
+    --raio-cartao: 8px; --raio-botao: 6px; --raio-foto: 6px;
+    --sombra: none;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; }
+  body { background: var(--fundo); color: var(--tinta); font-family: var(--f-texto); font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; padding-bottom: 96px; }
+  h1, h2, h3 { font-family: var(--f-titulo); font-weight: var(--peso-titulo); letter-spacing: var(--espaco); line-height: 1.05; text-wrap: balance; }
+  button { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--tinta); outline-offset: 3px; }
+  .caixa { max-width: 1200px; margin: 0 auto; padding: 0 max(16px, env(safe-area-inset-left)); }
+
+  /* Topo */
+  .topo { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 72px; }
+  .marca { display: flex; align-items: center; gap: 8px; font-family: var(--f-titulo); font-weight: var(--peso-titulo); font-size: 21px; letter-spacing: var(--espaco); }
+  .marca .chave { width: 30px; height: 30px; border-radius: 9px; background: var(--destaque); color: var(--destaque-tinta); display: grid; place-items: center; }
+  body[data-id="lar"] .marca .chave { border-radius: 50%; }
+  .topo nav { display: none; gap: 24px; font-size: 15px; color: var(--suave); }
+  @media (min-width: 860px) { .topo nav { display: flex; } }
+
+  .botao { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 20px; border-radius: var(--raio-botao); border: 1px solid transparent; font-weight: 600; font-size: 15px; cursor: pointer; -webkit-user-select: none; user-select: none; transition: transform 140ms cubic-bezier(0.23, 1, 0.32, 1), filter 160ms ease; }
+  .botao:active { transform: scale(0.97); }
+  .acao { background: var(--acao); color: var(--acao-tinta); }
+  .contorno { border-color: var(--linha); background: var(--superficie); }
+  .pequeno { min-height: 40px; padding: 0 14px; font-size: 14px; }
+
+  /* Busca em pílula */
+  .titulo-busca { margin-top: 28px; font-size: clamp(34px, 5.4vw, 64px); max-width: 15ch; }
+  .busca { margin-top: 22px; display: flex; align-items: stretch; border: 1px solid var(--linha); background: var(--superficie); border-radius: calc(var(--raio-botao) + 8px); box-shadow: var(--sombra); max-width: 820px; overflow: hidden; }
+  body[data-id="campus"] .busca { border-radius: 999px; }
+  .campo { flex: 1; padding: 12px 22px; border-right: 1px solid var(--linha); min-width: 0; cursor: pointer; transition: background-color 150ms ease; }
+  .campo:hover { background: rgb(0 0 0 / 0.03); }
+  .campo small { display: block; font-size: 12px; font-weight: 600; }
+  .campo span { display: block; color: var(--suave); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 15px; }
+  .busca .ir { margin: 8px; min-height: auto; aspect-ratio: 1; padding: 0 18px; background: var(--destaque); color: var(--destaque-tinta); }
+  body[data-id="campus"] .busca .ir { background: var(--acao); color: #fff; }
+  @media (max-width: 640px) { .campo:nth-child(n+2) { display: none; } .campo { border: 0; } }
+
+  /* Categorias */
+  .categorias { margin-top: 26px; display: flex; gap: 28px; overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid var(--linha); }
+  .categoria { flex: none; display: grid; justify-items: center; gap: 6px; padding: 6px 2px 12px; border: 0; background: none; color: var(--suave); font-size: 13px; font-weight: 500; cursor: pointer; border-bottom: 2px solid transparent; transition: color 150ms ease, border-color 150ms ease; }
+  .categoria svg { width: 26px; height: 26px; }
+  .categoria[aria-pressed="true"] { color: var(--tinta); border-color: var(--tinta); }
+  body[data-id="campus"] .categoria[aria-pressed="true"] { border-color: var(--acao); color: var(--acao); }
+
+  /* Grade de imóveis */
+  .grade { margin-top: 26px; display: grid; gap: 28px 20px; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+  .imovel { position: relative; }
+  .fotos { position: relative; aspect-ratio: 20 / 19; border-radius: var(--raio-foto); overflow: hidden; background: var(--superficie); }
+  .trilho { display: flex; height: 100%; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain; }
+  .trilho img { flex: none; width: 100%; height: 100%; object-fit: cover; scroll-snap-align: start; }
+  .bolinhas { position: absolute; bottom: 10px; left: 0; right: 0; display: flex; justify-content: center; gap: 5px; pointer-events: none; }
+  .bolinhas i { width: 6px; height: 6px; border-radius: 50%; background: rgb(255 255 255 / 0.6); transition: background-color 150ms ease, transform 150ms ease; }
+  .bolinhas i.ativa { background: #fff; transform: scale(1.2); }
+  .coracao { position: absolute; top: 10px; right: 10px; width: 40px; height: 40px; border: 0; background: none; cursor: pointer; display: grid; place-items: center; }
+  .coracao svg { width: 26px; height: 26px; fill: rgb(0 0 0 / 0.35); stroke: #fff; stroke-width: 2; transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1); }
+  .coracao:active svg { transform: scale(0.85); }
+  .coracao[aria-pressed="true"] svg { fill: #e5484d; animation: pulinho 320ms cubic-bezier(0.34, 1.56, 0.64, 1); }
+  @keyframes pulinho { 0% { transform: scale(0.8); } 60% { transform: scale(1.18); } 100% { transform: scale(1); } }
+  .etiqueta { position: absolute; top: 12px; left: 12px; padding: 4px 10px; border-radius: 999px; background: var(--etiqueta); color: var(--destaque-tinta); font-size: 12px; font-weight: 600; box-shadow: 0 1px 4px rgb(0 0 0 / 0.12); }
+  body[data-id="lar"] .etiqueta { color: var(--acao); border-radius: 4px; }
+  .info { margin-top: 10px; font-size: 15px; }
+  .info .linha1 { display: flex; justify-content: space-between; gap: 8px; font-weight: 600; }
+  .info .suave { color: var(--suave); }
+  .info .preco { margin-top: 4px; }
+  .info .preco b { font-weight: 600; }
+
+  /* Cartão de custo (anúncio) */
+  .anuncio { margin-top: 64px; display: grid; gap: 28px; align-items: start; }
+  @media (min-width: 860px) { .anuncio { grid-template-columns: 1.5fr 1fr; } }
+  .anuncio h2 { font-size: clamp(28px, 3.4vw, 40px); }
+  .mosaico { margin-top: 16px; display: grid; grid-template-columns: 2fr 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 8px; aspect-ratio: 2 / 1; border-radius: var(--raio-foto); overflow: hidden; }
+  .mosaico img { width: 100%; height: 100%; object-fit: cover; }
+  .mosaico img:first-child { grid-row: span 2; }
+  .custo { border: 1px solid var(--linha); border-radius: var(--raio-cartao); padding: 24px; box-shadow: var(--sombra); background: var(--fundo); }
+  body[data-id="campus"] .custo { background: var(--superficie); }
+  .custo .total { font-family: var(--f-titulo); font-weight: var(--peso-titulo); font-size: 30px; letter-spacing: var(--espaco); }
+  .custo dl { margin: 16px 0; border-top: 1px solid var(--linha); }
+  .custo dl div { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--linha); font-size: 15px; }
+  .custo dd { font-variant-numeric: tabular-nums; }
+  .custo .botao { width: 100%; }
+  .custo p.nota { margin-top: 10px; font-size: 13px; color: var(--suave); text-align: center; }
+
+  .ficha { margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--linha); display: grid; gap: 20px; }
+  @media (min-width: 860px) { .ficha { grid-template-columns: 1.3fr 1fr; } }
+  .cores { display: flex; flex-wrap: wrap; gap: 10px; }
+  .cor { width: 86px; font-size: 12px; color: var(--suave); }
+  .cor span { display: block; height: 50px; border-radius: 10px; border: 1px solid var(--linha); margin-bottom: 6px; }
+  .amostra { font-family: var(--f-titulo); font-weight: var(--peso-titulo); font-size: 34px; letter-spacing: var(--espaco); line-height: 1.1; }
+
+  @media (prefers-reduced-motion: reduce) { .coracao[aria-pressed="true"] svg { animation: none; } .botao, .coracao svg { transition: none; } }
+
+  /* ===== Seletor (PICKER.md, sem alterações) ===== */
+  .proto-picker { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 2147483647; display: flex; align-items: center; gap: 2px; padding: 4px; border-radius: 999px; background: rgba(10, 10, 10, 0.82); -webkit-backdrop-filter: blur(12px) saturate(1.4); backdrop-filter: blur(12px) saturate(1.4); box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08) inset, 0 8px 24px rgba(0, 0, 0, 0.24), 0 2px 6px rgba(0, 0, 0, 0.12); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 13px; line-height: 1; -webkit-font-smoothing: antialiased; user-select: none; -webkit-user-select: none; }
+  .proto-picker-highlight { position: absolute; top: 4px; left: 0; height: 28px; border-radius: 999px; background: rgba(255, 255, 255, 0.12); will-change: transform; }
+  .proto-picker[data-ready] .proto-picker-highlight { transition: transform 250ms cubic-bezier(0.23, 1, 0.32, 1), width 250ms cubic-bezier(0.23, 1, 0.32, 1); }
+  @media (prefers-reduced-motion: reduce) { .proto-picker[data-ready] .proto-picker-highlight { transition: none; } }
+  .proto-picker-item { position: relative; display: flex; align-items: center; height: 28px; padding: 0 12px; border: 0; border-radius: 999px; background: transparent; color: rgba(255, 255, 255, 0.55); font: inherit; cursor: pointer; transition: color 150ms ease-out; }
+  .proto-picker-item:hover { color: rgba(255, 255, 255, 0.85); }
+  .proto-picker-item:active { transform: scale(0.97); }
+  .proto-picker-item:focus-visible { outline: 2px solid rgba(255, 255, 255, 0.4); outline-offset: 2px; }
+  .proto-picker-item[data-active] { color: #fff; }
+</style>
+</head>
+<body data-id="chave">
+<div class="caixa">
+  <header class="topo">
+    <div class="marca"><span class="chave"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="8" cy="12" r="4"/><path d="M12 12h9M18 12v3M21 12v2"/></svg></span>Chave Leve</div>
+    <nav><a>Como funciona</a><a>Para proprietários</a><a>Favoritos</a></nav>
+    <button class="botao contorno pequeno">Entrar</button>
+  </header>
+
+  <h1 class="titulo-busca">Alugue sem precisar ir até a imobiliária.</h1>
+  <div class="busca" role="search">
+    <div class="campo"><small>Onde</small><span>Perto da UFSM, Centro…</span></div>
+    <div class="campo"><small>Até</small><span>R$ 1.500 por mês</span></div>
+    <div class="campo"><small>Quartos</small><span>Qualquer</span></div>
+    <button class="botao ir" aria-label="Buscar"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
+  </div>
+
+  <div class="categorias" role="group" aria-label="Categorias" id="categorias"></div>
+  <div class="grade" id="grade"></div>
+
+  <section class="anuncio">
+    <div>
+      <h2>Kitnet mobiliada a 600 m da UFSM</h2>
+      <p style="color:var(--suave);margin-top:6px">Camobi · código CL-0142 · 1 quarto · 28 m²</p>
+      <div class="mosaico"><img src="img/kitnet.jpg" alt=""><img src="img/studio.jpg" alt=""><img src="img/cozinha.jpg" alt=""><img src="img/quarto-estudante.jpg" alt=""><img src="img/predio.jpg" alt=""></div>
+    </div>
+    <aside class="custo">
+      <p style="color:var(--suave);font-size:14px">Total por mês</p>
+      <p class="total">R$ 1.180</p>
+      <dl>
+        <div><dt>Aluguel</dt><dd>R$ 950</dd></div>
+        <div><dt>Condomínio</dt><dd>R$ 180</dd></div>
+        <div><dt>IPTU</dt><dd>R$ 50</dd></div>
+      </dl>
+      <button class="botao acao">Agendar visita</button>
+      <button class="botao contorno" style="margin-top:8px">Conversar no WhatsApp</button>
+      <p class="nota">O corretor confirma pelo WhatsApp em até 2 horas.</p>
+    </aside>
+  </section>
+
+  <section class="ficha" aria-label="Ficha da identidade">
+    <div><p style="font-weight:600;margin-bottom:12px" id="nome-id"></p><div class="cores" id="cores"></div></div>
+    <div><p class="amostra">Aa Chave Leve</p><p style="color:var(--suave);margin-top:6px" id="fontes"></p></div>
+  </section>
+</div>
+
+<nav class="proto-picker" aria-label="Prototype variants">
+  <span class="proto-picker-highlight" aria-hidden="true"></span>
+  <button class="proto-picker-item" data-active aria-current="true">Chave</button>
+  <button class="proto-picker-item">Campus</button>
+  <button class="proto-picker-item">Lar</button>
+</nav>
+
+<script>
+const icones = {
+  ufsm: '<path d="M3 10 12 5l9 5-9 5-9-5Z"/><path d="M7 12v4c3 2 7 2 10 0v-4"/>',
+  mobiliado: '<path d="M4 18v-6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v6M2 18h20M6 10V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3"/>',
+  kitnet: '<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 12h16M12 4v8"/>',
+  dividir: '<circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M3 19c0-3 2-5 5-5s5 2 5 5M11 19c0-3 2-5 5-5s5 2 5 5"/>',
+  patio: '<path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/><path d="M9 20v-5h6v5"/>',
+  pet: '<circle cx="7" cy="9" r="2"/><circle cx="12" cy="6" r="2"/><circle cx="17" cy="9" r="2"/><path d="M8 17c0-3 2-5 4-5s4 2 4 5c0 2-2 2-4 2s-4 0-4-2Z"/>',
+};
+const categorias = [["ufsm", "Perto da UFSM"], ["mobiliado", "Mobiliado"], ["kitnet", "Kitnet"], ["dividir", "Para dividir"], ["patio", "Casa com pátio"], ["pet", "Aceita pet"]];
+document.getElementById("categorias").innerHTML = categorias.map(([id, nome], i) => `<button class="categoria" aria-pressed="${i === 0}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${icones[id]}</svg>${nome}</button>`).join("");
+document.querySelectorAll(".categoria").forEach((b) => b.addEventListener("click", () => document.querySelectorAll(".categoria").forEach((x) => x.setAttribute("aria-pressed", x === b))));
+
+const imoveis = [
+  { fotos: ["quarto-estudante", "studio", "cozinha"], bairro: "Camobi", dist: "600 m da UFSM", tipo: "Kitnet mobiliada", aluguel: 950, total: 1180, etiqueta: "Perto da UFSM" },
+  { fotos: ["dividir", "jantar", "sala"], bairro: "Camobi", dist: "1,2 km da UFSM", tipo: "Apto 2 quartos para dividir", aluguel: 1400, total: 1720, etiqueta: "Para dividir" },
+  { fotos: ["sala", "quarto", "cozinha"], bairro: "Centro", dist: "Perto da Praça", tipo: "Apartamento 2 quartos", aluguel: 1650, total: 2040 },
+  { fotos: ["casa-patio", "sala-amarela", "jantar"], bairro: "Nossa Sra. de Lourdes", dist: "Aceita pet", tipo: "Casa com pátio", aluguel: 2100, total: 2260, etiqueta: "Aceita pet" },
+];
+const br = (n) => n.toLocaleString("pt-BR");
+document.getElementById("grade").innerHTML = imoveis.map((m) => `
+  <article class="imovel">
+    <div class="fotos"><div class="trilho">${m.fotos.map((f) => `<img src="img/${f}.jpg" alt="" loading="lazy">`).join("")}</div>
+      <div class="bolinhas">${m.fotos.map((_, i) => `<i class="${i === 0 ? "ativa" : ""}"></i>`).join("")}</div>
+      ${m.etiqueta ? `<span class="etiqueta">${m.etiqueta}</span>` : ""}
+      <button class="coracao" aria-pressed="false" aria-label="Favoritar"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.6-9.3-9A5 5 0 0 1 12 6a5 5 0 0 1 9.3 6c-2.3 4.4-9.3 9-9.3 9Z"/></svg></button>
+    </div>
+    <div class="info"><div class="linha1"><span>${m.tipo}</span></div>
+      <p class="suave">${m.bairro} · ${m.dist}</p>
+      <p class="preco"><b>R$ ${br(m.aluguel)}</b> aluguel <span class="suave">· R$ ${br(m.total)} no total</span></p></div>
+  </article>`).join("");
+document.querySelectorAll(".trilho").forEach((t) => t.addEventListener("scroll", () => {
+  const i = Math.round(t.scrollLeft / t.clientWidth);
+  t.parentElement.querySelectorAll(".bolinhas i").forEach((b, j) => b.classList.toggle("ativa", i === j));
+}, { passive: true }));
+document.querySelectorAll(".coracao").forEach((c) => c.addEventListener("click", () => c.setAttribute("aria-pressed", c.getAttribute("aria-pressed") !== "true")));
+
+const identidades = [
+  { id: "chave", nome: "Chave — branco, preto e amarelo-chave; grotesca expressiva", cores: [["Fundo", "#ffffff"], ["Superfície", "#f6f6f4"], ["Tinta e ação", "#18181b"], ["Texto suave", "#6b6b73"], ["Amarelo-chave", "#f2b705"], ["Etiqueta", "#fff3c4"]], fontes: "Bricolage Grotesque (títulos) · Albert Sans (texto) · cantos médios (12–16px), sombra suave" },
+  { id: "campus", nome: "Campus — jovem e estudantil; azul elétrico e verde-limão", cores: [["Fundo", "#f3f5f8"], ["Superfície", "#ffffff"], ["Tinta", "#0b1220"], ["Texto suave", "#5a6478"], ["Ação", "#2b4dff"], ["Limão", "#d7f75b"]], fontes: "Sora (títulos) · Hanken Grotesk (texto) · tudo bem arredondado, botões em pílula" },
+  { id: "lar", nome: "Lar — sóbrio e acolhedor; areia e verde-floresta, serifa", cores: [["Fundo", "#ffffff"], ["Areia", "#f3efe9"], ["Tinta", "#1f1b16"], ["Texto suave", "#6f675d"], ["Floresta", "#1f4d3a"], ["Etiqueta", "#e4ede7"]], fontes: "Newsreader (títulos) · Rethink Sans (texto) · cantos discretos (6–8px), sem sombra" },
+];
+function ficha(i) {
+  const d = identidades[i];
+  document.getElementById("nome-id").textContent = d.nome;
+  document.getElementById("cores").innerHTML = d.cores.map(([n, c]) => `<div class="cor"><span style="background:${c}"></span>${n}<br>${c}</div>`).join("");
+  document.getElementById("fontes").textContent = d.fontes;
+}
+
+// Seletor (comportamento do PICKER.md)
+const picker = document.querySelector(".proto-picker"), highlight = picker.querySelector(".proto-picker-highlight");
+const items = [...picker.querySelectorAll(".proto-picker-item")];
+let current = 0;
+function moveHighlight() { const el = items[current]; highlight.style.width = el.offsetWidth + "px"; highlight.style.transform = `translateX(${el.offsetLeft}px)`; }
+function setActive(i) {
+  if (i < 0 || i >= identidades.length) return;
+  current = i;
+  items.forEach((el, j) => { el.toggleAttribute("data-active", j === i); if (j === i) el.setAttribute("aria-current", "true"); else el.removeAttribute("aria-current"); });
+  moveHighlight();
+  const url = new URL(location); url.searchParams.set("v", i + 1); history.replaceState(null, "", url);
+  document.body.dataset.id = identidades[i].id; ficha(i);
+}
+items.forEach((el, i) => el.addEventListener("click", () => setActive(i)));
+addEventListener("resize", moveHighlight);
+document.addEventListener("keydown", (e) => {
+  if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) || e.target.isContentEditable || e.metaKey || e.ctrlKey || e.altKey) return;
+  const n = parseInt(e.key, 10);
+  if (n >= 1 && n <= identidades.length) setActive(n - 1);
+  else if (e.key === "ArrowRight") setActive((current + 1) % identidades.length);
+  else if (e.key === "ArrowLeft") setActive((current - 1 + identidades.length) % identidades.length);
+});
+setActive((parseInt(new URLSearchParams(location.search).get("v"), 10) || 1) - 1);
+requestAnimationFrame(() => requestAnimationFrame(() => picker.setAttribute("data-ready", "")));
+</script>
+</body>
+</html>

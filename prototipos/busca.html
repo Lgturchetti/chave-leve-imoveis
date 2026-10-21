@@ -1,0 +1,540 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="theme-color" content="#f3f5f8">
+<title>Protótipos da busca — Chave Leve Imóveis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Hanken+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+  /* ===== Identidade Campus (BRIEFING.md) ===== */
+  :root {
+    --fundo: #f3f5f8; --superficie: #ffffff; --tinta: #0b1220; --suave: #5a6478; --linha: rgb(11 18 32 / 0.1);
+    --acao: #2b4dff; --acao-escuro: #1f3ce0; --limao: #d7f75b; --coracao: #e5484d;
+    --f-titulo: "Sora", system-ui, sans-serif; --f-texto: "Hanken Grotesk", system-ui, sans-serif;
+    --raio-cartao: 22px; --raio-foto: 18px;
+    --sombra: 0 1px 2px rgb(11 18 32 / 0.05), 0 12px 32px -16px rgb(43 77 255 / 0.25);
+    --sombra-flutua: 0 2px 6px rgb(11 18 32 / 0.08), 0 24px 48px -16px rgb(11 18 32 / 0.3);
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1); --ease-gaveta: cubic-bezier(0.32, 0.72, 0, 1);
+    --m: max(16px, env(safe-area-inset-left));
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; }
+  body { background: var(--fundo); color: var(--tinta); font-family: var(--f-texto); font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  h1, h2, h3 { font-family: var(--f-titulo); font-weight: 600; letter-spacing: -0.035em; line-height: 1.05; text-wrap: balance; }
+  button { font: inherit; color: inherit; touch-action: manipulation; }
+  :focus-visible { outline: 2px solid var(--acao); outline-offset: 3px; }
+  .caixa { max-width: 1240px; margin: 0 auto; padding: 0 var(--m); }
+  .suave { color: var(--suave); }
+
+  .botao { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 22px; border-radius: 999px; border: 1px solid transparent; font-weight: 600; font-size: 15px; cursor: pointer; -webkit-user-select: none; user-select: none; transition: transform 140ms var(--ease-out), background-color 160ms ease; }
+  .botao:active { transform: scale(0.97); }
+  .acao { background: var(--acao); color: #fff; }
+  @media (hover: hover) and (pointer: fine) { .acao:hover { background: var(--acao-escuro); } }
+  .contorno { border-color: var(--linha); background: var(--superficie); }
+  .escuro { background: var(--tinta); color: #fff; }
+  .pequeno { min-height: 40px; padding: 0 16px; font-size: 14px; }
+
+  /* Topo comum */
+  .topo { position: sticky; top: 0; z-index: 30; background: rgb(243 245 248 / 0.88); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); padding-top: env(safe-area-inset-top); }
+  .topo .caixa { display: flex; align-items: center; justify-content: space-between; height: 64px; gap: 12px; }
+  .marca { display: flex; align-items: center; gap: 8px; font-family: var(--f-titulo); font-weight: 600; font-size: 20px; letter-spacing: -0.03em; }
+  .marca i { width: 30px; height: 30px; border-radius: 9px; background: var(--limao); display: grid; place-items: center; }
+
+  /* Busca em pílula / botão compacto no celular */
+  .busca { display: flex; align-items: stretch; background: var(--superficie); border: 1px solid var(--linha); border-radius: 999px; box-shadow: var(--sombra); overflow: hidden; }
+  .campo { flex: 1; min-width: 0; padding: 10px 20px; border-right: 1px solid var(--linha); text-align: left; background: none; border-top: 0; border-bottom: 0; border-left: 0; cursor: pointer; }
+  .campo small { display: block; font-size: 12px; font-weight: 600; }
+  .campo span { display: block; color: var(--suave); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 15px; }
+  .busca .ir { margin: 6px; width: 48px; min-height: 48px; padding: 0; border-radius: 50%; }
+  @media (max-width: 700px) { .campo:nth-child(n+2) { display: none; } .campo { border: 0; } }
+
+  /* Categorias */
+  .categorias { display: flex; gap: 22px; overflow-x: auto; scrollbar-width: none; padding: 0 var(--m); margin: 0 calc(-1 * var(--m)); }
+  .categorias::-webkit-scrollbar { display: none; }
+  .categoria { flex: none; display: grid; justify-items: center; gap: 6px; padding: 8px 2px 10px; border: 0; background: none; color: var(--suave); font-size: 13px; font-weight: 500; cursor: pointer; border-bottom: 2px solid transparent; transition: color 150ms ease, border-color 150ms ease; -webkit-user-select: none; user-select: none; }
+  .categoria svg { width: 24px; height: 24px; }
+  .categoria[aria-pressed="true"] { color: var(--acao); border-color: var(--acao); }
+
+  /* Cartão de imóvel com fotos deslizando */
+  .imovel { position: relative; text-align: left; border: 0; background: none; padding: 0; cursor: pointer; display: block; width: 100%; }
+  .fotos { position: relative; aspect-ratio: 20 / 19; border-radius: var(--raio-foto); overflow: hidden; background: #e5e9f0; }
+  .trilho { display: flex; height: 100%; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain; }
+  .trilho::-webkit-scrollbar { display: none; }
+  .trilho img { flex: none; width: 100%; height: 100%; object-fit: cover; scroll-snap-align: start; -webkit-user-drag: none; }
+  .bolinhas { position: absolute; bottom: 10px; left: 0; right: 0; display: flex; justify-content: center; gap: 5px; pointer-events: none; }
+  .bolinhas i { width: 6px; height: 6px; border-radius: 50%; background: rgb(255 255 255 / 0.6); transition: background-color 150ms ease, transform 150ms ease; }
+  .bolinhas i.ativa { background: #fff; transform: scale(1.25); }
+  .coracao { position: absolute; top: 8px; right: 8px; width: 44px; height: 44px; border: 0; background: none; cursor: pointer; display: grid; place-items: center; }
+  .coracao svg { width: 26px; height: 26px; fill: rgb(11 18 32 / 0.35); stroke: #fff; stroke-width: 2; transition: transform 160ms var(--ease-out); }
+  .coracao:active svg { transform: scale(0.85); }
+  .coracao[aria-pressed="true"] svg { fill: var(--coracao); animation: pulinho 320ms cubic-bezier(0.34, 1.56, 0.64, 1); }
+  @keyframes pulinho { 0% { transform: scale(0.8); } 60% { transform: scale(1.18); } 100% { transform: scale(1); } }
+  .etiqueta { position: absolute; top: 12px; left: 12px; padding: 4px 10px; border-radius: 999px; background: var(--limao); font-size: 12px; font-weight: 600; }
+  .info { margin-top: 10px; font-size: 15px; }
+  .info .tipo { font-weight: 600; }
+  .info .preco { margin-top: 2px; }
+
+  /* ===== 1. GRADE ===== */
+  .v-grade .cab { padding: 24px 0 14px; }
+  .v-grade h1 { font-size: clamp(30px, 5vw, 56px); max-width: 15ch; }
+  .v-grade .busca { margin-top: 18px; max-width: 760px; }
+  .v-grade .categorias { margin-top: 18px; border-bottom: 1px solid var(--linha); }
+  .grade { margin-top: 22px; display: grid; gap: 28px 20px; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); padding-bottom: 120px; }
+  .flutuante { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 25; box-shadow: var(--sombra-flutua); }
+  .mapa-cheio { height: calc(100dvh - 64px); margin-top: 0; }
+
+  /* ===== 2. MAPA ===== */
+  .v-mapa .cab { padding: 12px 0; display: flex; gap: 12px; align-items: center; }
+  .v-mapa .busca { flex: 1; }
+  .v-mapa .split { display: grid; height: calc(100dvh - 64px - 74px - 44px); }
+  @media (min-width: 900px) { .v-mapa .split { grid-template-columns: 520px 1fr; } }
+  .v-mapa .lista { overflow-y: auto; padding: 8px var(--m) 24px; display: grid; gap: 22px; grid-template-columns: 1fr 1fr; align-content: start; }
+  .v-mapa #mapa2 { min-height: 300px; }
+  .v-mapa .categorias { border-bottom: 1px solid var(--linha); }
+  @media (max-width: 899px) {
+    .v-mapa .split { position: relative; display: block; height: calc(100dvh - 64px - 74px - 44px); }
+    .v-mapa #mapa2 { position: absolute; inset: 0; }
+    .v-mapa .gaveta { position: absolute; left: 0; right: 0; bottom: 0; height: 88%; background: var(--fundo); border-radius: 22px 22px 0 0; box-shadow: var(--sombra-flutua); z-index: 500; transform: translateY(calc(100% - 132px)); transition: transform 380ms var(--ease-gaveta); display: flex; flex-direction: column; }
+    .v-mapa .gaveta[data-aberta] { transform: translateY(0); }
+    .v-mapa .gaveta[data-arrastando] { transition: none; }
+    .v-mapa .puxador { flex: none; padding: 10px 0 8px; cursor: grab; touch-action: none; text-align: center; }
+    .v-mapa .puxador::before { content: ""; display: block; width: 40px; height: 4px; border-radius: 99px; background: rgb(11 18 32 / 0.2); margin: 0 auto 8px; }
+    .v-mapa .lista { grid-template-columns: 1fr; flex: 1; }
+  }
+  @media (min-width: 900px) { .v-mapa .puxador { display: none; } .v-mapa .gaveta { overflow-y: auto; } }
+  .pino { background: var(--superficie); border-radius: 999px; padding: 5px 10px; font: 600 13px/1 var(--f-texto); color: var(--tinta); box-shadow: 0 2px 8px rgb(11 18 32 / 0.25); white-space: nowrap; transition: transform 160ms var(--ease-out), background-color 160ms ease; transform-origin: bottom center; }
+  .pino.ativo { background: var(--tinta); color: #fff; transform: scale(1.12); }
+  .pino-ufsm { background: var(--limao); border-radius: 999px; padding: 5px 10px; font: 600 12px/1 var(--f-texto); box-shadow: 0 2px 8px rgb(11 18 32 / 0.25); white-space: nowrap; }
+  .leaflet-div-icon { background: none; border: 0; }
+
+  /* ===== 3. DISTÂNCIA ===== */
+  .v-dist .cab { padding: 28px 0 8px; }
+  .v-dist h1 { font-size: clamp(30px, 5.2vw, 58px); }
+  .v-dist h1 .num { display: inline-block; min-width: 2ch; padding: 0 10px; border-radius: 14px; background: var(--limao); font-variant-numeric: tabular-nums; }
+  .regua { margin-top: 26px; background: var(--superficie); border-radius: var(--raio-cartao); padding: 20px 22px; box-shadow: var(--sombra); max-width: 760px; }
+  .regua .topo-regua { display: flex; justify-content: space-between; font-size: 14px; }
+  .regua input[type=range] { width: 100%; margin-top: 14px; accent-color: var(--acao); height: 28px; }
+  .marcas { display: flex; justify-content: space-between; font-size: 12px; color: var(--suave); }
+  .contagem { font-variant-numeric: tabular-nums; }
+  .v-dist .categorias { margin-top: 20px; border-bottom: 1px solid var(--linha); }
+  .min-pe { position: absolute; bottom: 12px; left: 12px; padding: 5px 10px; border-radius: 999px; background: rgb(11 18 32 / 0.78); color: #fff; font-size: 12px; font-weight: 600; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+  .item-saindo { animation: some 180ms ease-out forwards; }
+  @keyframes some { to { opacity: 0; transform: scale(0.97); } }
+  .item-entrando { animation: aparece 240ms var(--ease-out); }
+  @keyframes aparece { from { opacity: 0; transform: translateY(8px); } }
+  .vazio { grid-column: 1 / -1; padding: 40px 20px; text-align: center; background: var(--superficie); border-radius: var(--raio-cartao); }
+
+  /* ===== 4. UM POR VEZ ===== */
+  .v-um .cab { padding: 16px 0 6px; display: flex; gap: 10px; align-items: center; }
+  .v-um .busca { flex: 1; }
+  .v-um .categorias { margin-top: 6px; }
+  .pilha { position: relative; margin: 14px auto 0; width: min(100%, 420px); aspect-ratio: 3 / 4.3; }
+  .carta { position: absolute; inset: 0; border-radius: 26px; overflow: hidden; background: #dfe4ec; box-shadow: var(--sombra-flutua); touch-action: pan-y; -webkit-user-select: none; user-select: none; cursor: grab; will-change: transform; }
+  .carta:active { cursor: grabbing; }
+  .carta .trilho img { pointer-events: none; }
+  .carta .fotos { position: absolute; inset: 0; aspect-ratio: auto; border-radius: 0; }
+  .carta .base { position: absolute; left: 0; right: 0; bottom: 0; padding: 70px 20px 20px; background: linear-gradient(to top, rgb(11 18 32 / 0.85), transparent); color: #fff; pointer-events: none; }
+  .carta .base h2 { font-size: 26px; }
+  .carta .base p { opacity: 0.9; font-size: 15px; }
+  .carta .bolinhas { top: 12px; bottom: auto; }
+  .carta.atras { transform: scale(0.95) translateY(14px); filter: brightness(0.96); transition: transform 300ms var(--ease-out); pointer-events: none; }
+  .selo { position: absolute; top: 26px; padding: 6px 14px; border-radius: 12px; border: 3px solid; font: 700 22px/1 var(--f-titulo); letter-spacing: -0.02em; opacity: 0; pointer-events: none; }
+  .selo.gostei { left: 20px; color: var(--limao); border-color: var(--limao); transform: rotate(-12deg); }
+  .selo.proximo { right: 20px; color: #fff; border-color: #fff; transform: rotate(12deg); }
+  .botoes-um { display: flex; justify-content: center; align-items: center; gap: 18px; margin-top: 18px; }
+  .redondo { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; border: 0; background: var(--superficie); box-shadow: var(--sombra); cursor: pointer; transition: transform 140ms var(--ease-out); }
+  .redondo:active { transform: scale(0.92); }
+  .redondo.gostei svg { fill: var(--coracao); }
+  .redondo.ver { width: 48px; height: 48px; }
+  .salvos { margin: 18px auto 120px; width: min(100%, 420px); }
+  .salvos .miniaturas { display: flex; gap: 8px; margin-top: 8px; overflow-x: auto; scrollbar-width: none; }
+  .salvos img { width: 64px; height: 64px; border-radius: 14px; object-fit: cover; flex: none; animation: aparece 240ms var(--ease-out); }
+
+  /* ===== Anúncio (comum) ===== */
+  .anuncio-fundo { position: fixed; inset: 0; z-index: 60; background: rgb(11 18 32 / 0.4); opacity: 0; pointer-events: none; transition: opacity 240ms ease-out; }
+  .anuncio-fundo[data-aberto] { opacity: 1; pointer-events: auto; }
+  .anuncio { position: fixed; z-index: 61; inset: 0; overflow-y: auto; overscroll-behavior: contain; background: var(--fundo); transform: translateY(100%); visibility: hidden; transition: transform 420ms var(--ease-gaveta), visibility 0s 420ms; }
+  .anuncio[data-aberto] { transform: none; visibility: visible; transition: transform 420ms var(--ease-gaveta), visibility 0s; }
+  @media (min-width: 900px) { .anuncio { inset: 4vh auto 4vh 50%; width: min(1100px, 94vw); margin-left: calc(min(1100px, 94vw) / -2); border-radius: 26px; transform: translateY(24px); opacity: 0; transition: transform 300ms var(--ease-out), opacity 220ms ease-out, visibility 0s 300ms; } .anuncio[data-aberto] { transform: none; opacity: 1; transition: transform 300ms var(--ease-out), opacity 220ms ease-out, visibility 0s; } }
+  .anuncio .barra-topo { position: sticky; top: 0; z-index: 3; display: flex; justify-content: space-between; padding: calc(10px + env(safe-area-inset-top)) var(--m) 10px; }
+  .anuncio .barra-topo .botao { background: var(--superficie); box-shadow: var(--sombra); }
+  .mosaico { display: grid; gap: 6px; grid-template-columns: 2fr 1fr 1fr; grid-template-rows: 1fr 1fr; aspect-ratio: 2 / 1; border-radius: 22px; overflow: hidden; margin-top: -60px; }
+  .mosaico img { width: 100%; height: 100%; object-fit: cover; }
+  .mosaico img:first-child { grid-row: span 2; }
+  @media (max-width: 700px) { .mosaico { grid-template-columns: 1fr; grid-template-rows: 1fr; aspect-ratio: 4 / 3; border-radius: 0; margin: -60px calc(-1 * var(--m)) 0; } .mosaico img:not(:first-child) { display: none; } }
+  .anuncio .corpo { display: grid; gap: 28px; padding: 22px 0 140px; }
+  @media (min-width: 900px) { .anuncio .corpo { grid-template-columns: 1.5fr 1fr; align-items: start; padding-bottom: 40px; } }
+  .anuncio h2 { font-size: clamp(26px, 3.4vw, 36px); }
+  .caracs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .caracs span { padding: 7px 12px; border-radius: 999px; background: var(--superficie); border: 1px solid var(--linha); font-size: 14px; }
+  .custo { background: var(--superficie); border-radius: var(--raio-cartao); padding: 22px; box-shadow: var(--sombra); position: sticky; top: 72px; }
+  .custo .total { font: 600 30px/1.1 var(--f-titulo); letter-spacing: -0.03em; }
+  .custo dl { margin: 14px 0 16px; border-top: 1px solid var(--linha); }
+  .custo dl div { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--linha); font-size: 15px; }
+  .custo dd { font-variant-numeric: tabular-nums; }
+  .custo .botao { width: 100%; }
+  .nota { margin-top: 10px; font-size: 13px; color: var(--suave); text-align: center; }
+  .barra-celular { display: none; }
+  @media (max-width: 899px) {
+    .custo { position: static; }
+    .custo .botao, .custo .nota { display: none; }
+    .barra-celular { display: flex; position: fixed; z-index: 62; left: 0; right: 0; bottom: 0; align-items: center; justify-content: space-between; gap: 12px; padding: 12px var(--m) calc(12px + env(safe-area-inset-bottom)); background: var(--superficie); border-top: 1px solid var(--linha); transform: translateY(110%); transition: transform 300ms var(--ease-out) 120ms; }
+    .anuncio[data-aberto] ~ .barra-celular { transform: none; }
+    .barra-celular b { font: 600 18px/1.1 var(--f-titulo); }
+  }
+
+  /* Agendar visita: painel que sobe */
+  .agenda { position: fixed; z-index: 71; left: 0; right: 0; bottom: 0; max-height: 90dvh; overflow-y: auto; background: var(--superficie); border-radius: 26px 26px 0 0; padding: 12px var(--m) calc(20px + env(safe-area-inset-bottom)); box-shadow: var(--sombra-flutua); transform: translateY(105%); transition: transform 380ms var(--ease-gaveta); }
+  .agenda[data-aberta] { transform: none; }
+  @media (min-width: 700px) { .agenda { left: 50%; width: 480px; margin-left: -240px; bottom: 6vh; border-radius: 26px; transform: translateY(20px) scale(0.98); opacity: 0; pointer-events: none; transition: transform 260ms var(--ease-out), opacity 200ms ease-out; } .agenda[data-aberta] { transform: none; opacity: 1; pointer-events: auto; } }
+  .agenda-fundo { position: fixed; inset: 0; z-index: 70; background: rgb(11 18 32 / 0.35); opacity: 0; pointer-events: none; transition: opacity 220ms ease-out; }
+  .agenda-fundo[data-aberto] { opacity: 1; pointer-events: auto; }
+  .agenda .puxa { width: 40px; height: 4px; border-radius: 99px; background: rgb(11 18 32 / 0.2); margin: 0 auto 14px; }
+  .dias { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin-top: 10px; padding-bottom: 4px; }
+  .chip { flex: none; border: 1px solid var(--linha); background: var(--fundo); border-radius: 16px; padding: 10px 12px; cursor: pointer; text-align: center; min-width: 64px; transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease, transform 140ms var(--ease-out); }
+  .chip:active { transform: scale(0.96); }
+  .chip[aria-pressed="true"] { background: var(--acao); color: #fff; border-color: var(--acao); }
+  .chip small { display: block; font-size: 12px; opacity: 0.8; }
+  .chip b { font-size: 18px; }
+  .turnos { display: flex; gap: 8px; margin-top: 10px; }
+  .turnos .chip { flex: 1; }
+  .agenda label { display: block; margin-top: 14px; font-size: 14px; font-weight: 600; }
+  .agenda input { display: block; width: 100%; margin-top: 6px; border: 1px solid var(--linha); border-radius: 14px; padding: 12px 14px; font: inherit; font-size: 16px; background: var(--fundo); }
+  .agenda .botao { width: 100%; margin-top: 18px; }
+  .ok { text-align: center; padding: 20px 0 6px; animation: aparece 260ms var(--ease-out); }
+  .ok .check { width: 56px; height: 56px; border-radius: 50%; background: var(--limao); display: grid; place-items: center; margin: 0 auto 12px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .anuncio, .agenda, .gaveta, .barra-celular, .carta.atras { transition-duration: 1ms !important; }
+    .coracao[aria-pressed="true"] svg, .item-entrando, .item-saindo, .ok, .salvos img { animation: none !important; }
+  }
+
+  /* ===== Seletor (PICKER.md, sem alterações) ===== */
+  .proto-picker { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 2147483647; display: flex; align-items: center; gap: 2px; padding: 4px; border-radius: 999px; background: rgba(10, 10, 10, 0.82); -webkit-backdrop-filter: blur(12px) saturate(1.4); backdrop-filter: blur(12px) saturate(1.4); box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08) inset, 0 8px 24px rgba(0, 0, 0, 0.24), 0 2px 6px rgba(0, 0, 0, 0.12); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 13px; line-height: 1; -webkit-font-smoothing: antialiased; user-select: none; -webkit-user-select: none; }
+  .proto-picker-highlight { position: absolute; top: 4px; left: 0; height: 28px; border-radius: 999px; background: rgba(255, 255, 255, 0.12); will-change: transform; }
+  .proto-picker[data-ready] .proto-picker-highlight { transition: transform 250ms cubic-bezier(0.23, 1, 0.32, 1), width 250ms cubic-bezier(0.23, 1, 0.32, 1); }
+  @media (prefers-reduced-motion: reduce) { .proto-picker[data-ready] .proto-picker-highlight { transition: none; } }
+  .proto-picker-item { position: relative; display: flex; align-items: center; height: 28px; padding: 0 12px; border: 0; border-radius: 999px; background: transparent; color: rgba(255, 255, 255, 0.55); font: inherit; cursor: pointer; transition: color 150ms ease-out; }
+  .proto-picker-item:hover { color: rgba(255, 255, 255, 0.85); }
+  .proto-picker-item:active { transform: scale(0.97); }
+  .proto-picker-item:focus-visible { outline: 2px solid rgba(255, 255, 255, 0.4); outline-offset: 2px; }
+  .proto-picker-item[data-active] { color: #fff; }
+  .proto-picker-divider { width: 1px; height: 16px; margin: 0 4px; background: rgba(255, 255, 255, 0.12); }
+  .proto-picker-replay { padding: 0 10px; font-size: 14px; }
+  .proto-picker[data-position="top"] { bottom: auto; top: 24px; }
+</style>
+</head>
+<body>
+<header class="topo"><div class="caixa">
+  <div class="marca"><i><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0b1220" stroke-width="2.2"><circle cx="8" cy="12" r="4"/><path d="M12 12h9M18 12v3M21 12v2"/></svg></i>Chave Leve</div>
+  <button class="botao contorno pequeno">Entrar</button>
+</div></header>
+
+<main id="stage"></main>
+
+<div class="anuncio-fundo" id="anuncio-fundo"></div>
+<article class="anuncio" id="anuncio" role="dialog" aria-modal="true" aria-label="Anúncio do imóvel" tabindex="-1"></article>
+<div class="barra-celular" id="barra-celular"></div>
+<div class="agenda-fundo" id="agenda-fundo"></div>
+<div class="agenda" id="agenda" role="dialog" aria-modal="true" aria-label="Agendar visita" tabindex="-1"></div>
+
+<nav class="proto-picker" aria-label="Prototype variants" data-position="top">
+  <span class="proto-picker-highlight" aria-hidden="true"></span>
+  <button class="proto-picker-item" data-active aria-current="true">Grade</button>
+  <button class="proto-picker-item">Mapa</button>
+  <button class="proto-picker-item">Distância</button>
+  <button class="proto-picker-item">Um por vez</button>
+  <span class="proto-picker-divider" aria-hidden="true"></span>
+  <button class="proto-picker-item proto-picker-replay" aria-label="Replay animation (R)">↻</button>
+</nav>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+const IMG = "../identidade/img/";
+const UFSM = [-29.7176, -53.7163];
+const icones = {
+  todos: '<rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/>',
+  ufsm: '<path d="M3 10 12 5l9 5-9 5-9-5Z"/><path d="M7 12v4c3 2 7 2 10 0v-4"/>',
+  mobiliado: '<path d="M4 18v-6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v6M2 18h20M6 10V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3"/>',
+  kitnet: '<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 12h16M12 4v8"/>',
+  dividir: '<circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M3 19c0-3 2-5 5-5s5 2 5 5M11 19c0-3 2-5 5-5s5 2 5 5"/>',
+  patio: '<path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/><path d="M9 20v-5h6v5"/>',
+  pet: '<circle cx="7" cy="9" r="2"/><circle cx="12" cy="6" r="2"/><circle cx="17" cy="9" r="2"/><path d="M8 17c0-3 2-5 4-5s4 2 4 5c0 2-2 2-4 2s-4 0-4-2Z"/>',
+};
+const categorias = [["todos", "Todos"], ["ufsm", "Perto da UFSM"], ["mobiliado", "Mobiliado"], ["kitnet", "Kitnet"], ["dividir", "Para dividir"], ["patio", "Casa com pátio"], ["pet", "Aceita pet"]];
+
+// Imóveis fictícios em Santa Maria (coordenadas aproximadas dos bairros)
+const imoveis = [
+  { cod: "CL-0142", tipo: "Kitnet mobiliada", bairro: "Camobi", lat: -29.7135, lon: -53.7185, fotos: ["quarto-estudante", "studio", "cozinha"], quartos: 1, area: 28, aluguel: 950, cond: 180, iptu: 50, cats: ["ufsm", "mobiliado", "kitnet"] },
+  { cod: "CL-0137", tipo: "Apto 2 quartos para dividir", bairro: "Camobi", lat: -29.7092, lon: -53.7260, fotos: ["dividir", "jantar", "sala"], quartos: 2, area: 58, aluguel: 1400, cond: 260, iptu: 60, cats: ["ufsm", "dividir", "mobiliado"] },
+  { cod: "CL-0151", tipo: "Kitnet perto do RU", bairro: "Camobi", lat: -29.7160, lon: -53.7215, fotos: ["kitnet-2", "kitnet", "cozinha"], quartos: 1, area: 24, aluguel: 780, cond: 120, iptu: 35, cats: ["ufsm", "kitnet"] },
+  { cod: "CL-0128", tipo: "Studio com escrivaninha", bairro: "Camobi", lat: -29.7055, lon: -53.7330, fotos: ["studio", "quarto-estudante", "cozinha"], quartos: 1, area: 32, aluguel: 1050, cond: 200, iptu: 45, cats: ["ufsm", "mobiliado", "kitnet"] },
+  { cod: "CL-0119", tipo: "Apartamento 2 quartos", bairro: "Centro", lat: -29.6868, lon: -53.8070, fotos: ["sala", "quarto", "cozinha"], quartos: 2, area: 72, aluguel: 1650, cond: 320, iptu: 70, cats: [] },
+  { cod: "CL-0145", tipo: "Casa com pátio", bairro: "Nossa Sra. de Lourdes", lat: -29.6935, lon: -53.7975, fotos: ["casa-patio", "sala-amarela", "jantar"], quartos: 3, area: 110, aluguel: 2100, cond: 0, iptu: 160, cats: ["patio", "pet"] },
+  { cod: "CL-0133", tipo: "Apto 3 quartos para república", bairro: "Camobi", lat: -29.7038, lon: -53.7395, fotos: ["jantar", "dividir", "quarto"], quartos: 3, area: 85, aluguel: 1900, cond: 280, iptu: 80, cats: ["ufsm", "dividir", "pet"] },
+  { cod: "CL-0110", tipo: "Apartamento com sacada", bairro: "Centro", lat: -29.6840, lon: -53.8115, fotos: ["sala-amarela", "quarto", "predio"], quartos: 1, area: 48, aluguel: 1150, cond: 230, iptu: 55, cats: ["mobiliado"] },
+  { cod: "CL-0155", tipo: "Kitnet em prédio novo", bairro: "Camobi", lat: -29.7110, lon: -53.7120, fotos: ["predio", "kitnet", "studio"], quartos: 1, area: 26, aluguel: 890, cond: 150, iptu: 40, cats: ["ufsm", "kitnet", "pet"] },
+  { cod: "CL-0102", tipo: "Casa 2 quartos", bairro: "Medianeira", lat: -29.7005, lon: -53.8105, fotos: ["casa-patio", "sala", "cozinha"], quartos: 2, area: 90, aluguel: 1500, cond: 0, iptu: 110, cats: ["patio"] },
+];
+const rad = (g) => (g * Math.PI) / 180;
+function km(a, b) { const R = 6371, dLat = rad(b[0] - a[0]), dLon = rad(b[1] - a[1]); const x = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a[0])) * Math.cos(rad(b[0])) * Math.sin(dLon / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(x)); }
+imoveis.forEach((m) => { m.km = km([m.lat, m.lon], UFSM); m.min = Math.max(3, Math.round(m.km * 1.3 * 12)); m.total = m.aluguel + m.cond + m.iptu; });
+const br = (n) => n.toLocaleString("pt-BR");
+const distTexto = (m) => (m.min <= 25 ? `${m.min} min a pé da UFSM` : `${m.km.toFixed(1).replace(".", ",")} km da UFSM`);
+const favoritos = new Set();
+const etiquetaDe = (m) => (m.cats.includes("ufsm") ? "Perto da UFSM" : m.cats.includes("pet") ? "Aceita pet" : m.cats.includes("patio") ? "Com pátio" : "");
+
+function categoriasHTML(ativa = "todos") {
+  return `<div class="categorias" role="group" aria-label="Categorias">${categorias.map(([id, nome]) => `<button class="categoria" data-cat="${id}" aria-pressed="${id === ativa}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${icones[id]}</svg>${nome}</button>`).join("")}</div>`;
+}
+function buscaHTML() {
+  return `<div class="busca" role="search"><button class="campo"><small>Onde</small><span>Perto da UFSM, Centro…</span></button><button class="campo"><small>Até</small><span>R$ 1.500 por mês</span></button><button class="campo"><small>Quartos</small><span>Qualquer</span></button><button class="botao acao ir" aria-label="Buscar"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button></div>`;
+}
+function coracaoHTML(m) { return `<span role="button" tabindex="0" class="coracao" data-fav="${m.cod}" aria-pressed="${favoritos.has(m.cod)}" aria-label="Favoritar ${m.tipo}"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.6-9.3-9A5 5 0 0 1 12 6a5 5 0 0 1 9.3 6c-2.3 4.4-9.3 9-9.3 9Z"/></svg></span>`; }
+function cartaoHTML(m, extra = "") {
+  const et = etiquetaDe(m);
+  return `<div class="imovel" role="button" tabindex="0" data-abre="${m.cod}" aria-label="${m.tipo}, ${m.bairro}, R$ ${br(m.total)} por mês">
+    <div class="fotos"><div class="trilho">${m.fotos.map((f, i) => `<img src="${IMG + f}.jpg" alt="" ${i ? 'loading="lazy"' : ""}>`).join("")}</div>
+      <div class="bolinhas">${m.fotos.map((_, i) => `<i class="${i ? "" : "ativa"}"></i>`).join("")}</div>
+      ${et ? `<span class="etiqueta">${et}</span>` : ""}${coracaoHTML(m)}${extra}</div>
+    <div class="info"><p class="tipo">${m.tipo}</p><p class="suave">${m.bairro} · ${distTexto(m)}</p>
+      <p class="preco"><b>R$ ${br(m.aluguel)}</b> aluguel <span class="suave">· R$ ${br(m.total)} no total</span></p></div></div>`;
+}
+const filtrar = (cat) => (cat === "todos" ? imoveis : imoveis.filter((m) => m.cats.includes(cat)));
+
+// Mapa (Leaflet + OpenStreetMap) com o preço nos pinos
+function criarMapa(el, lista, aoClicar) {
+  const mapa = L.map(el, { zoomControl: false, attributionControl: true }).setView([-29.700, -53.765], 13);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 18, attribution: "© OpenStreetMap" }).addTo(mapa);
+  L.marker(UFSM, { icon: L.divIcon({ className: "", html: '<span class="pino-ufsm">UFSM</span>', iconSize: null }) }).addTo(mapa);
+  const pinos = {};
+  const desenhar = (itens) => {
+    Object.values(pinos).forEach((p) => p.remove());
+    itens.forEach((m) => {
+      pinos[m.cod] = L.marker([m.lat, m.lon], { icon: L.divIcon({ className: "", html: `<span class="pino" data-pino="${m.cod}">R$ ${br(m.total)}</span>`, iconSize: null }) }).addTo(mapa).on("click", () => aoClicar(m));
+    });
+  };
+  desenhar(lista);
+  return { mapa, desenhar, destacar: (cod) => document.querySelectorAll("[data-pino]").forEach((p) => p.classList.toggle("ativo", p.dataset.pino === cod)) };
+}
+
+const variantes = [
+  // 1. GRADE — o padrão do Airbnb, com botão flutuante para o mapa
+  { classe: "v-grade", html: () => `<div class="caixa"><div class="cab"><h1>Alugue sem precisar ir até a imobiliária.</h1>${buscaHTML()}</div>${categoriasHTML()}<div id="corpo1"></div></div>
+      <button class="botao escuro flutuante" id="alternar">Mostrar mapa <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Z"/><path d="M9 4v14M15 6v14"/></svg></button>`,
+    iniciar(raiz) {
+      let cat = "todos", modoMapa = false, m1 = null;
+      const corpo = raiz.querySelector("#corpo1"), alt = raiz.querySelector("#alternar");
+      const pintar = () => {
+        if (modoMapa) { corpo.innerHTML = '<div id="mapa1" class="mapa-cheio" style="margin:12px calc(-1*var(--m)) 0"></div>'; m1 = criarMapa(corpo.querySelector("#mapa1"), filtrar(cat), (m) => abrirAnuncio(m.cod)); }
+        else { corpo.innerHTML = `<div class="grade">${filtrar(cat).map((m) => cartaoHTML(m)).join("")}</div>`; }
+        alt.firstChild.textContent = modoMapa ? "Mostrar lista " : "Mostrar mapa ";
+      };
+      raiz.querySelectorAll(".categoria").forEach((b) => b.addEventListener("click", () => { cat = b.dataset.cat; raiz.querySelectorAll(".categoria").forEach((x) => x.setAttribute("aria-pressed", x === b)); pintar(); }));
+      alt.addEventListener("click", () => { modoMapa = !modoMapa; pintar(); });
+      pintar();
+      return () => m1?.mapa.remove();
+    } },
+
+  // 2. MAPA — o mapa é a tela; lista ao lado (desktop) ou numa gaveta arrastável (celular)
+  { classe: "v-mapa", html: () => `<div class="caixa"><div class="cab">${buscaHTML()}</div>${categoriasHTML()}</div>
+      <div class="split"><div class="gaveta" id="gaveta"><div class="puxador" id="puxador"><b id="qtd2"></b> imóveis nesta região</div><div class="lista" id="lista2"></div></div><div id="mapa2"></div></div>`,
+    iniciar(raiz) {
+      let cat = "todos";
+      const lista = raiz.querySelector("#lista2"), gaveta = raiz.querySelector("#gaveta"), puxador = raiz.querySelector("#puxador");
+      const m2 = criarMapa(raiz.querySelector("#mapa2"), imoveis, (m) => { m2.destacar(m.cod); const c = lista.querySelector(`[data-abre="${m.cod}"]`); gaveta.setAttribute("data-aberta", ""); c?.scrollIntoView({ behavior: "smooth", block: "center" }); });
+      const pintar = () => { const it = filtrar(cat); lista.innerHTML = it.map((m) => cartaoHTML(m)).join(""); raiz.querySelector("#qtd2").textContent = it.length; m2.desenhar(it);
+        lista.querySelectorAll(".imovel").forEach((c) => c.addEventListener("pointerenter", () => m2.destacar(c.dataset.abre))); };
+      raiz.querySelectorAll(".categoria").forEach((b) => b.addEventListener("click", () => { cat = b.dataset.cat; raiz.querySelectorAll(".categoria").forEach((x) => x.setAttribute("aria-pressed", x === b)); pintar(); }));
+      // Gaveta: tocar alterna; arrastar segue o dedo e decide pela posição ou pela velocidade (peteleco)
+      let y0 = 0, t0 = 0, base = 0, arrastando = false;
+      puxador.addEventListener("pointerdown", (e) => { arrastando = true; y0 = e.clientY; t0 = performance.now(); base = gaveta.hasAttribute("data-aberta") ? 0 : gaveta.offsetHeight - 132; gaveta.setAttribute("data-arrastando", ""); puxador.setPointerCapture(e.pointerId); });
+      puxador.addEventListener("pointermove", (e) => { if (!arrastando) return; const d = Math.max(0, Math.min(gaveta.offsetHeight - 132, base + e.clientY - y0)); gaveta.style.transform = `translateY(${d}px)`; });
+      puxador.addEventListener("pointerup", (e) => {
+        arrastando = false; gaveta.removeAttribute("data-arrastando"); gaveta.style.transform = "";
+        const dy = e.clientY - y0, v = dy / (performance.now() - t0);
+        if (Math.abs(dy) < 6) gaveta.toggleAttribute("data-aberta");
+        else if (v < -0.4 || (dy < 0 && Math.abs(dy) > 80)) gaveta.setAttribute("data-aberta", "");
+        else if (v > 0.4 || dy > 80) gaveta.removeAttribute("data-aberta");
+      });
+      pintar(); setTimeout(() => m2.mapa.invalidateSize(), 100);
+      return () => m2.mapa.remove();
+    } },
+
+  // 3. DISTÂNCIA — régua "até X minutos a pé da UFSM" filtra enquanto arrasta
+  { classe: "v-dist", html: () => `<div class="caixa"><div class="cab"><h1>Até <span class="num" id="min3">15</span> min a pé da UFSM.</h1>
+      <div class="regua"><div class="topo-regua"><span>Distância a pé do campus</span><b class="contagem" id="qtd3"></b></div>
+        <input type="range" id="regua" min="5" max="60" step="1" value="15" aria-label="Minutos a pé da UFSM">
+        <div class="marcas"><span>5 min</span><span>20 min</span><span>40 min</span><span>60 min</span></div></div></div>
+      ${categoriasHTML()}<div class="grade" id="lista3"></div></div>`,
+    iniciar(raiz) {
+      let cat = "todos", lim = 15, atual = new Set();
+      const lista = raiz.querySelector("#lista3"), regua = raiz.querySelector("#regua");
+      const pintar = (animar) => {
+        const it = filtrar(cat).filter((m) => m.min <= lim).sort((a, b) => a.min - b.min);
+        raiz.querySelector("#min3").textContent = lim; raiz.querySelector("#qtd3").textContent = `${it.length} ${it.length === 1 ? "imóvel" : "imóveis"}`;
+        const novos = new Set(it.map((m) => m.cod));
+        lista.innerHTML = it.length ? it.map((m) => cartaoHTML(m, `<span class="min-pe">${m.min} min a pé</span>`).replace('class="imovel"', `class="imovel${animar && !atual.has(m.cod) ? " item-entrando" : ""}"`)).join("")
+          : `<div class="vazio"><h3>Nada a até ${lim} min a pé.</h3><p class="suave" style="margin-top:6px">Arraste a régua para ${lim + 10} min ou tire o filtro de categoria.</p></div>`;
+        atual = novos;
+      };
+      regua.addEventListener("input", () => { lim = Number(regua.value); pintar(true); });
+      raiz.querySelectorAll(".categoria").forEach((b) => b.addEventListener("click", () => { cat = b.dataset.cat; raiz.querySelectorAll(".categoria").forEach((x) => x.setAttribute("aria-pressed", x === b)); pintar(true); }));
+      pintar(false);
+    } },
+
+  // 4. UM POR VEZ — deslizar: direita "gostei" (favorito), esquerda "próximo"
+  { classe: "v-um", html: () => `<div class="caixa"><div class="cab">${buscaHTML()}</div>${categoriasHTML("ufsm")}
+      <div class="pilha" id="pilha"></div>
+      <div class="botoes-um"><button class="redondo" id="nao" aria-label="Próximo"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#5a6478" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+        <button class="redondo ver" id="ver" aria-label="Ver anúncio"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0b1220" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z"/></svg></button>
+        <button class="redondo gostei" id="sim" aria-label="Gostei"><svg width="28" height="28" viewBox="0 0 24 24"><path d="M12 21s-7-4.6-9.3-9A5 5 0 0 1 12 6a5 5 0 0 1 9.3 6c-2.3 4.4-9.3 9-9.3 9Z"/></svg></button></div>
+      <div class="salvos"><p class="suave" id="salvos-txt">Deslize para a direita no que gostar.</p><div class="miniaturas" id="mini"></div></div></div>`,
+    iniciar(raiz) {
+      let fila = filtrar("ufsm"), i = 0;
+      const pilha = raiz.querySelector("#pilha"), mini = raiz.querySelector("#mini");
+      const carta = (m, atras) => `<div class="carta${atras ? " atras" : ""}" data-cod="${m.cod}"><div class="fotos"><div class="trilho">${m.fotos.map((f) => `<img src="${IMG + f}.jpg" alt="">`).join("")}</div><div class="bolinhas">${m.fotos.map((_, k) => `<i class="${k ? "" : "ativa"}"></i>`).join("")}</div></div>
+        <span class="selo gostei">GOSTEI</span><span class="selo proximo">PRÓXIMO</span>
+        <div class="base"><h2>${m.tipo}</h2><p>${m.bairro} · ${distTexto(m)}</p><p><b>R$ ${br(m.total)}</b> por mês, tudo incluído</p></div></div>`;
+      const pintar = () => {
+        if (i >= fila.length) { pilha.innerHTML = `<div class="vazio" style="position:absolute;inset:0;display:grid;place-content:center"><h3>Você viu todos.</h3><p class="suave" style="margin-top:6px">Troque a categoria para ver mais.</p></div>`; return; }
+        pilha.innerHTML = (fila[i + 1] ? carta(fila[i + 1], true) : "") + carta(fila[i]);
+        ligar(pilha.querySelector(".carta:not(.atras)"));
+      };
+      const decidir = (gostou, el) => {
+        const m = fila[i];
+        if (gostou && !favoritos.has(m.cod)) { favoritos.add(m.cod); mini.insertAdjacentHTML("afterbegin", `<img src="${IMG + m.fotos[0]}.jpg" alt="${m.tipo}">`); raiz.querySelector("#salvos-txt").textContent = `${favoritos.size} salvo${favoritos.size > 1 ? "s" : ""} neste aparelho`; }
+        const x = (gostou ? 1 : -1) * (innerWidth + 200);
+        el.style.transition = "transform 320ms cubic-bezier(0.23, 1, 0.32, 1)"; el.style.transform = `translate(${x}px, 40px) rotate(${gostou ? 18 : -18}deg)`;
+        pilha.querySelector(".atras")?.style.setProperty("transform", "none");
+        setTimeout(() => { i++; pintar(); }, 260);
+      };
+      function ligar(el) {
+        let x0 = 0, y0 = 0, dx = 0, t0 = 0, ativo = false;
+        const selos = [el.querySelector(".gostei"), el.querySelector(".proximo")];
+        el.addEventListener("pointerdown", (e) => { ativo = true; x0 = e.clientX; y0 = e.clientY; t0 = performance.now(); dx = 0; el.style.transition = "none"; });
+        el.addEventListener("pointermove", (e) => {
+          if (!ativo) return; dx = e.clientX - x0; const dy = e.clientY - y0;
+          if (Math.abs(dx) < 6 || Math.abs(dy) > Math.abs(dx) * 1.2) return;
+          el.setPointerCapture(e.pointerId);
+          el.style.transform = `translate(${dx}px, ${dy * 0.15}px) rotate(${dx / 18}deg)`;
+          selos[0].style.opacity = Math.max(0, Math.min(1, dx / 90)); selos[1].style.opacity = Math.max(0, Math.min(1, -dx / 90));
+        });
+        const soltar = () => {
+          if (!ativo) return; ativo = false;
+          const v = Math.abs(dx) / (performance.now() - t0);
+          if (Math.abs(dx) > 110 || (Math.abs(dx) > 30 && v > 0.5)) return decidir(dx > 0, el);
+          if (Math.abs(dx) < 6) return abrirAnuncio(el.dataset.cod);
+          el.style.transition = "transform 420ms cubic-bezier(0.34, 1.4, 0.64, 1)"; el.style.transform = ""; selos.forEach((s) => (s.style.opacity = 0));
+        };
+        el.addEventListener("pointerup", soltar); el.addEventListener("pointercancel", soltar);
+      }
+      raiz.querySelector("#sim").addEventListener("click", () => { const el = pilha.querySelector(".carta:not(.atras)"); el && decidir(true, el); });
+      raiz.querySelector("#nao").addEventListener("click", () => { const el = pilha.querySelector(".carta:not(.atras)"); el && decidir(false, el); });
+      raiz.querySelector("#ver").addEventListener("click", () => fila[i] && abrirAnuncio(fila[i].cod));
+      raiz.querySelectorAll(".categoria").forEach((b) => b.addEventListener("click", () => { fila = filtrar(b.dataset.cat); i = 0; raiz.querySelectorAll(".categoria").forEach((x) => x.setAttribute("aria-pressed", x === b)); pintar(); }));
+      pintar();
+    } },
+];
+
+// ===== Comportamentos comuns =====
+// Fotos do cartão: bolinhas acompanham; coração favorita sem abrir o anúncio
+document.addEventListener("scroll", (e) => {
+  const t = e.target; if (!(t instanceof Element) || !t.classList.contains("trilho")) return;
+  const k = Math.round(t.scrollLeft / t.clientWidth);
+  t.parentElement.querySelectorAll(".bolinhas i").forEach((b, j) => b.classList.toggle("ativa", k === j));
+}, { capture: true, passive: true });
+document.addEventListener("click", (e) => {
+  const fav = e.target.closest("[data-fav]");
+  if (fav) { e.stopPropagation(); const c = fav.dataset.fav; favoritos.has(c) ? favoritos.delete(c) : favoritos.add(c); document.querySelectorAll(`[data-fav="${c}"]`).forEach((x) => x.setAttribute("aria-pressed", favoritos.has(c))); return; }
+  const card = e.target.closest("[data-abre]"); if (card && !card.closest(".v-um")) abrirAnuncio(card.dataset.abre);
+});
+document.addEventListener("keydown", (e) => {
+  if ((e.key === "Enter" || e.key === " ") && e.target.matches("[data-abre], [data-fav]")) { e.preventDefault(); e.target.click(); }
+});
+
+// Anúncio
+const anuncio = document.getElementById("anuncio"), fundoA = document.getElementById("anuncio-fundo"), barra = document.getElementById("barra-celular");
+let ultimoFoco = null;
+function abrirAnuncio(cod) {
+  const m = imoveis.find((x) => x.cod === cod); if (!m) return;
+  ultimoFoco = document.activeElement;
+  anuncio.innerHTML = `<div class="barra-topo"><button class="botao pequeno" data-fecha aria-label="Voltar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m15 18-6-6 6-6"/></svg> Voltar</button>${coracaoHTML(m).replace('class="coracao"', 'class="coracao" style="position:static;background:var(--superficie);border-radius:50%;box-shadow:var(--sombra)"')}</div>
+    <div class="caixa"><div class="mosaico">${[...m.fotos, "predio", "cozinha"].slice(0, 5).map((f) => `<img src="${IMG + f}.jpg" alt="">`).join("")}</div>
+    <div class="corpo"><div><h2>${m.tipo}</h2><p class="suave" style="margin-top:6px">${m.bairro} · código ${m.cod} · ${distTexto(m)}</p>
+      <div class="caracs"><span>${m.quartos} ${m.quartos > 1 ? "quartos" : "quarto"}</span><span>${m.area} m²</span>${m.cats.includes("mobiliado") ? "<span>Mobiliado</span>" : ""}${m.cats.includes("pet") ? "<span>Aceita pet</span>" : ""}${m.cats.includes("dividir") ? "<span>Bom para dividir</span>" : ""}</div>
+      <p style="margin-top:18px;max-width:60ch">Imóvel claro e bem localizado, com fotos tiradas pela própria Chave Leve. A visita é com o corretor, e o contrato é assinado pelo celular, sem precisar ir até a imobiliária.</p></div>
+      <aside class="custo"><p class="suave" style="font-size:14px">Total por mês</p><p class="total">R$ ${br(m.total)}</p>
+        <dl><div><dt>Aluguel</dt><dd>R$ ${br(m.aluguel)}</dd></div><div><dt>Condomínio</dt><dd>${m.cond ? "R$ " + br(m.cond) : "Não tem"}</dd></div><div><dt>IPTU</dt><dd>R$ ${br(m.iptu)}</dd></div></dl>
+        <button class="botao acao" data-agendar>Agendar visita</button><button class="botao contorno" style="margin-top:8px">Conversar no WhatsApp</button>
+        <p class="nota">O corretor confirma pelo WhatsApp em até 2 horas.</p></aside></div></div>`;
+  barra.innerHTML = `<div><b>R$ ${br(m.total)}</b><p class="suave" style="font-size:13px">por mês, tudo incluído</p></div><button class="botao acao" data-agendar>Agendar visita</button>`;
+  document.body.style.overflow = "hidden";
+  requestAnimationFrame(() => { anuncio.setAttribute("data-aberto", ""); fundoA.setAttribute("data-aberto", ""); anuncio.focus(); });
+}
+function fecharAnuncio() { anuncio.removeAttribute("data-aberto"); fundoA.removeAttribute("data-aberto"); document.body.style.overflow = ""; ultimoFoco?.focus?.(); }
+anuncio.addEventListener("click", (e) => { if (e.target.closest("[data-fecha]")) fecharAnuncio(); });
+fundoA.addEventListener("click", fecharAnuncio);
+
+// Agendar visita
+const agenda = document.getElementById("agenda"), fundoG = document.getElementById("agenda-fundo");
+function abrirAgenda() {
+  const dias = []; const d = new Date();
+  while (dias.length < 7) { d.setDate(d.getDate() + 1); if (d.getDay() !== 0) dias.push(new Date(d)); }
+  const sem = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
+  agenda.innerHTML = `<div class="puxa"></div><h3 style="font-size:22px">Agendar visita</h3><p class="suave" style="font-size:14px;margin-top:4px">O corretor confirma pelo WhatsApp em até 2 horas.</p>
+    <p style="margin-top:16px;font-weight:600;font-size:14px">Dia</p><div class="dias">${dias.map((x, k) => `<button class="chip" aria-pressed="${k === 0}" data-grupo="dia"><small>${sem[x.getDay()]}</small><b>${x.getDate()}</b></button>`).join("")}</div>
+    <p style="margin-top:14px;font-weight:600;font-size:14px">Turno</p><div class="turnos"><button class="chip" aria-pressed="true" data-grupo="turno">Manhã</button><button class="chip" aria-pressed="false" data-grupo="turno">Tarde</button></div>
+    <label>Seu nome<input autocomplete="name" enterkeyhint="next"></label><label>WhatsApp<input type="tel" inputmode="tel" autocomplete="tel" placeholder="(55) 99999-9999"></label>
+    <button class="botao acao" data-confirma>Pedir visita</button>`;
+  agenda.setAttribute("data-aberta", ""); fundoG.setAttribute("data-aberto", ""); agenda.focus();
+}
+function fecharAgenda() { agenda.removeAttribute("data-aberta"); fundoG.removeAttribute("data-aberto"); }
+document.addEventListener("click", (e) => {
+  if (e.target.closest("[data-agendar]")) abrirAgenda();
+  const chip = e.target.closest(".chip[data-grupo]"); if (chip) chip.parentElement.querySelectorAll(".chip").forEach((c) => c.setAttribute("aria-pressed", c === chip));
+  if (e.target.closest("[data-confirma]")) agenda.innerHTML = `<div class="ok"><div class="check"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0b1220" stroke-width="2.6"><path d="m5 12 5 5 9-10"/></svg></div><h3 style="font-size:22px">Pedido enviado</h3><p class="suave" style="margin-top:6px">O corretor confirma pelo WhatsApp em até 2 horas.</p><button class="botao contorno" style="margin-top:18px" onclick="fecharAgenda()">Fechar</button></div>`;
+});
+fundoG.addEventListener("click", fecharAgenda);
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") { if (agenda.hasAttribute("data-aberta")) fecharAgenda(); else if (anuncio.hasAttribute("data-aberto")) fecharAnuncio(); } });
+
+// ===== Seletor (comportamento do PICKER.md) =====
+const stage = document.getElementById("stage");
+const picker = document.querySelector(".proto-picker"), highlight = picker.querySelector(".proto-picker-highlight");
+const items = [...picker.querySelectorAll(".proto-picker-item:not(.proto-picker-replay)")], replay = picker.querySelector(".proto-picker-replay");
+let current = 0, limpar = null;
+function moveHighlight() { const el = items[current]; highlight.style.width = el.offsetWidth + "px"; highlight.style.transform = `translateX(${el.offsetLeft}px)`; }
+function mount(i) {
+  limpar?.(); fecharAgenda(); if (anuncio.hasAttribute("data-aberto")) fecharAnuncio();
+  stage.innerHTML = "";
+  requestAnimationFrame(() => { const v = variantes[i]; stage.className = v.classe; stage.innerHTML = v.html(); scrollTo(0, 0); limpar = v.iniciar(stage) || null; });
+}
+function setActive(i) {
+  if (i < 0 || i >= variantes.length) return;
+  current = i;
+  items.forEach((el, j) => { el.toggleAttribute("data-active", j === i); if (j === i) el.setAttribute("aria-current", "true"); else el.removeAttribute("aria-current"); });
+  moveHighlight();
+  const url = new URL(location); url.searchParams.set("v", i + 1); history.replaceState(null, "", url);
+  mount(i);
+}
+items.forEach((el, i) => el.addEventListener("click", () => setActive(i)));
+replay?.addEventListener("click", () => mount(current));
+addEventListener("resize", moveHighlight);
+document.addEventListener("keydown", (e) => {
+  if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) || e.target.isContentEditable || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (anuncio.hasAttribute("data-aberto") || agenda.hasAttribute("data-aberta")) return;
+  const n = parseInt(e.key, 10);
+  if (n >= 1 && n <= variantes.length) setActive(n - 1);
+  else if (e.key === "ArrowRight") setActive((current + 1) % variantes.length);
+  else if (e.key === "ArrowLeft") setActive((current - 1 + variantes.length) % variantes.length);
+  else if (e.key === "r" || e.key === "R") mount(current);
+});
+setActive((parseInt(new URLSearchParams(location.search).get("v"), 10) || 1) - 1);
+requestAnimationFrame(() => requestAnimationFrame(() => picker.setAttribute("data-ready", "")));
+</script>
+</body>
+</html>

@@ -237,6 +237,15 @@
   color: #fff;
   scale: 1.1;
 }
+/* Grupo de imóveis próximos: escuro para não parecer um preço; tocar aproxima o mapa */
+.pino-grupo {
+  background: var(--color-tinta);
+  color: #fff;
+  cursor: pointer;
+}
+.pino-grupo[data-ativo] {
+  background: var(--color-acao);
+}
 .pino-ufsm {
   display: inline-block;
   transform: translate(-50%, -50%);

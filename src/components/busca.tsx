@@ -80,8 +80,9 @@ export function BuscaTela({ imoveis, consulta }: { imoveis: ImovelCompleto[]; co
           onClick={() => setFiltrosAbertos(true)}
           className={`entra flex w-full max-w-[760px] items-center rounded-full border border-linha bg-superficie text-left shadow-suave transition-[border-color] duration-150 hover:border-tinta/25 ${mapa ? "mt-3" : "mt-5"}`}
           style={{ "--atraso": "60ms" } as React.CSSProperties}
-          aria-label={`Filtros: ${resumo.join(", ")}`}
         >
+          {/* Nome lido = "Abrir filtros" + o texto visível (o leitor de tela fala o mesmo que a tela mostra) */}
+          <span className="sr-only">Abrir filtros.</span>
           {["Onde", "Até", "Quartos"].map((rotulo, i) => (
             <span key={rotulo} className={`min-w-0 flex-1 border-linha px-5 py-2.5 ${i ? "hidden border-l sm:block" : ""}`}>
               <span className="block text-[12px] font-semibold">{rotulo}</span>

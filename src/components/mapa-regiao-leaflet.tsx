@@ -20,5 +20,5 @@ export function MapaRegiaoLeaflet({ lat, lon }: { lat: number; lon: number }) {
     };
   }, [lat, lon]);
 
-  return <div ref={caixa} className="relative z-0 mt-4 aspect-[16/9] overflow-hidden rounded-foto bg-[#e8ecf1]" role="img" aria-label="Mapa com a região aproximada do imóvel" />;
+  return <div ref={caixa} className="relative z-0 mt-4 aspect-[16/9] overflow-hidden rounded-foto bg-[#e8ecf1]" role="region" aria-label="Mapa com a região aproximada do imóvel" />;
 }

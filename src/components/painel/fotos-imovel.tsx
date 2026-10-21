@@ -39,6 +39,20 @@ async function preparar(arquivo: File): Promise<{ blob: Blob; ext: "webp" | "jpg
 }
 
 // demo = visitante da demonstração: escolhe da biblioteca de exemplo em vez de enviar arquivo
+// Avisos do arrastar para leitor de tela, em português e por posição (o padrão do dnd-kit fala inglês com códigos)
+function avisosArrastar(fotos: { id: string }[]) {
+  const pos = (id: string | number | undefined) => fotos.findIndex((f) => f.id === id) + 1;
+  const total = fotos.length;
+  return {
+    onDragStart: ({ active }: { active: { id: string | number } }) => `Foto ${pos(active.id)} de ${total} pega. Use as setas para mudar a posição.`,
+    onDragOver: ({ active, over }: { active: { id: string | number }; over: { id: string | number } | null }) =>
+      over ? `Foto ${pos(active.id)} sobre a posição ${pos(over.id)} de ${total}.` : `Foto ${pos(active.id)} fora da lista.`,
+    onDragEnd: ({ active, over }: { active: { id: string | number }; over: { id: string | number } | null }) =>
+      over ? `Foto ${pos(active.id)} solta na posição ${pos(over.id)} de ${total}.` : `Foto ${pos(active.id)} solta no lugar de antes.`,
+    onDragCancel: ({ active }: { active: { id: string | number } }) => `Movimento cancelado. A foto ${pos(active.id)} voltou para o lugar.`,
+  };
+}
+
 type Props = { imovelId: string; titulo: string; fotosIniciais: (FotoPainel & { url: string })[]; urlBase: string; demo?: boolean };
 
 export function FotosImovel({ imovelId, titulo, fotosIniciais, urlBase, demo = false }: Props) {
@@ -144,7 +158,7 @@ export function FotosImovel({ imovelId, titulo, fotosIniciais, urlBase, demo = f
             {biblioteca ? "Fechar biblioteca" : "Escolher da biblioteca"}
           </button>
         ) : (
-        <label className={`botao botao-acao botao-pequeno ${enviando || fotos.length >= MAX ? "pointer-events-none opacity-60" : ""}`}>
+        <label className={`botao botao-acao botao-pequeno has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-3 has-[:focus-visible]:outline-acao ${enviando || fotos.length >= MAX ? "pointer-events-none opacity-60" : ""}`}>
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 2v12M2 8h12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
           {enviando ? `Enviando ${enviando.feitas + 1} de ${enviando.total}…` : "Adicionar fotos"}
           <input ref={entrada} type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple className="sr-only" disabled={Boolean(enviando) || fotos.length >= MAX} onChange={(e) => enviar(e.target.files)} />
@@ -165,7 +179,7 @@ export function FotosImovel({ imovelId, titulo, fotosIniciais, urlBase, demo = f
                     type="button"
                     disabled={bloqueada}
                     onClick={() => escolher(b.caminho, b.alt)}
-                    aria-label={usada ? `${b.alt} (já está no imóvel)` : `Adicionar: ${b.alt}`}
+                    aria-label={usada ? `${b.alt}: No imóvel` : `Adicionar: ${b.alt}`}
                     className="relative block select-none aspect-[4/3] w-full cursor-pointer overflow-hidden rounded-xl bg-superficie transition-transform duration-100 active:scale-[0.97] disabled:cursor-not-allowed"
                   >
                     <Image src={`${urlBase}/${b.caminho}`} alt="" fill sizes="(min-width: 1024px) 140px, 30vw" className={`object-cover ${usada ? "opacity-40" : ""}`} />
@@ -189,7 +203,7 @@ export function FotosImovel({ imovelId, titulo, fotosIniciais, urlBase, demo = f
           {demo ? "Nenhuma foto ainda. Toque para escolher da biblioteca." : "Nenhuma foto ainda. Toque para escolher do celular ou do computador."}
         </button>
       ) : (
-        <DndContext id="fotos-imovel" sensors={sensores} collisionDetection={closestCenter} onDragEnd={aoSoltar} accessibility={{ screenReaderInstructions: { draggable: "Para mover, aperte espaço, use as setas e aperte espaço de novo para soltar." } }}>
+        <DndContext id="fotos-imovel" sensors={sensores} collisionDetection={closestCenter} onDragEnd={aoSoltar} accessibility={{ screenReaderInstructions: { draggable: "Para mover, aperte espaço, use as setas e aperte espaço de novo para soltar." }, announcements: avisosArrastar(fotos) }}>
           <SortableContext items={fotos.map((f) => f.id)} strategy={rectSortingStrategy}>
             <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
               {fotos.map((f, i) => (

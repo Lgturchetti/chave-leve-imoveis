@@ -75,7 +75,7 @@ export default function ComoFunciona() {
                   </span>
                 </Accordion.Trigger>
               </Accordion.Header>
-              <Accordion.Panel className="pb-5 pr-12 text-suave transition-[opacity,translate] duration-200 ease-out data-ending-style:opacity-0 data-starting-style:-translate-y-1 data-starting-style:opacity-0 motion-reduce:transition-none">
+              <Accordion.Panel className="pb-5 pr-12 text-suave transition-[opacity,translate] duration-200 ease-out data-ending-style:opacity-0 data-starting-style:-translate-y-1 data-starting-style:opacity-0 sem-movimento sem-deslize">
                 {d.r}
               </Accordion.Panel>
             </Accordion.Item>

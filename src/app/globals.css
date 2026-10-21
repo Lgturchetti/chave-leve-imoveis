@@ -263,6 +263,21 @@
   .pino {
     transition-property: opacity, background-color, border-color, color;
   }
+  /* Janelas, gavetas e respostas: sem deslizar nem crescer, mas ainda esmaecem (mais suave, não instantâneo).
+     !important porque as classes do Tailwind de entrada/saída vêm depois. O arrasto com o dedo continua igual. */
+  .sem-movimento {
+    transition-property: opacity !important;
+  }
+  .sem-movimento[data-starting-style],
+  .sem-movimento[data-ending-style] {
+    transform: none !important;
+    scale: none !important;
+  }
+  /* translate só onde é movimento (o diálogo de apagar usa translate para ficar no centro) */
+  .sem-movimento.sem-deslize[data-starting-style],
+  .sem-movimento.sem-deslize[data-ending-style] {
+    translate: none !important;
+  }
 }
 @keyframes surge {
   from {

@@ -147,20 +147,24 @@ export function BuscaTela({ imoveis, consulta }: { imoveis: ImovelCompleto[]; co
 function MapaComLista({ itens, ativo, grade }: { itens: ImovelCompleto[]; ativo: string | null; grade: (cols: string) => React.ReactNode }) {
   const [aberta, setAberta] = useState(false);
   const gaveta = useRef<HTMLDivElement>(null);
-  const toque = useRef({ y0: 0, t0: 0, base: 0, ativo: false });
+  const toque = useRef({ y0: 0, t0: 0, base: 0, max: 0, ativo: false });
   const ESPIA = 120; // quanto da gaveta aparece fechada
 
   const inicio = (e: React.PointerEvent) => {
     const el = gaveta.current;
     if (!el) return;
-    toque.current = { y0: e.clientY, t0: performance.now(), base: aberta ? 0 : el.offsetHeight - ESPIA, ativo: true };
+    const max = el.offsetHeight - ESPIA; // lido uma vez por arrasto (não a cada movimento)
+    toque.current = { y0: e.clientY, t0: performance.now(), base: aberta ? 0 : max, max, ativo: true };
     el.style.transition = "none";
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
   };
   const mover = (e: React.PointerEvent) => {
     const el = gaveta.current;
     if (!el || !toque.current.ativo) return;
-    const d = Math.max(0, Math.min(el.offsetHeight - ESPIA, toque.current.base + e.clientY - toque.current.y0));
+    const { base, max, y0 } = toque.current;
+    const bruto = base + e.clientY - y0;
+    // Além da borda a gaveta resiste (anda 30% do dedo) e volta ao soltar, em vez de parar numa parede
+    const d = bruto < 0 ? bruto * 0.3 : bruto > max ? max + (bruto - max) * 0.3 : bruto;
     el.style.transform = `translateY(${d}px)`;
   };
   const fim = (e: React.PointerEvent) => {
@@ -173,8 +177,9 @@ function MapaComLista({ itens, ativo, grade }: { itens: ImovelCompleto[]; ativo:
     const v = dy / Math.max(1, performance.now() - toque.current.t0);
     // Peteleco (velocidade) ou distância decide; um toque só alterna
     if (Math.abs(dy) < 6) setAberta((a) => !a);
-    else if (v < -0.4 || dy < -80) setAberta(true);
-    else if (v > 0.4 || dy > 80) setAberta(false);
+    // 0,11 px/ms: um peteleco leve basta (padrão de "momentum dismissal")
+    else if (v < -0.11 || dy < -80) setAberta(true);
+    else if (v > 0.11 || dy > 80) setAberta(false);
   };
 
   return (

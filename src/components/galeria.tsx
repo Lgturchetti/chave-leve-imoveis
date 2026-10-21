@@ -52,7 +52,7 @@ export function Galeria({ fotos, titulo }: { fotos: Foto[]; titulo: string }) {
         <Drawer.Portal>
           <Drawer.Backdrop className="fixed inset-0 z-50 bg-tinta opacity-[calc(0.98*(1-var(--drawer-swipe-progress)))] transition-opacity duration-300 data-ending-style:opacity-0 data-starting-style:opacity-0 data-swiping:duration-0" />
           <Drawer.Viewport className="fixed inset-0 z-50">
-            <Drawer.Popup className="flex h-full flex-col text-white outline-none [transform:translateY(var(--drawer-swipe-movement-y))] transition-[transform,opacity] duration-300 ease-gaveta data-ending-style:opacity-0 data-ending-style:[transform:translateY(8%)] data-starting-style:opacity-0 data-starting-style:[transform:translateY(4%)] motion-reduce:transition-none">
+            <Drawer.Popup className="flex h-full flex-col text-white outline-none [transform:translateY(var(--drawer-swipe-movement-y))] transition-[transform,opacity] duration-300 ease-gaveta data-ending-style:opacity-0 data-ending-style:[transform:translateY(8%)] data-starting-style:opacity-0 data-starting-style:[transform:translateY(4%)] sem-movimento">
               <Drawer.Title className="sr-only">Fotos: {titulo}</Drawer.Title>
               <Tela fotos={fotos} inicial={inicial} />
             </Drawer.Popup>

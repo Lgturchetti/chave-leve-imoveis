@@ -66,8 +66,8 @@ function Formulario({ codigo, titulo }: { codigo: string; titulo: string }) {
   }
 
   const erro = (c: CampoVisita) => estado.erros?.[c];
-  const chip = (marcado: boolean, onClick: () => void, filhos: React.ReactNode, rotulo: string) => (
-    <button type="button" aria-pressed={marcado} aria-label={rotulo} onClick={onClick} className="min-h-11 min-w-16 shrink-0 cursor-pointer select-none rounded-2xl border border-linha bg-fundo px-3 py-2 text-center transition-[background-color,color,border-color,transform] duration-150 active:scale-[0.96] aria-pressed:border-acao aria-pressed:bg-acao aria-pressed:text-white">
+  const chip = (marcado: boolean, onClick: () => void, filhos: React.ReactNode, rotulo: string, chave?: string) => (
+    <button key={chave} type="button" aria-pressed={marcado} aria-label={rotulo} onClick={onClick} className="min-h-11 min-w-16 shrink-0 cursor-pointer select-none rounded-2xl border border-linha bg-fundo px-3 py-2 text-center transition-[background-color,color,border-color,transform] duration-150 active:scale-[0.96] aria-pressed:border-acao aria-pressed:bg-acao aria-pressed:text-white">
       {filhos}
     </button>
   );
@@ -90,7 +90,7 @@ function Formulario({ codigo, titulo }: { codigo: string; titulo: string }) {
         <legend className="text-[14px] font-semibold">Dia</legend>
         <div className="-mx-6 mt-2 flex gap-2 overflow-x-auto px-6 pb-1 [scrollbar-width:none]" data-base-ui-swipe-ignore>
           {dias.map((d) =>
-            chip(dia === d.iso, () => setDia(d.iso), <><small className="block text-[12px] opacity-80">{d.semana}</small><b className="text-[18px] tabular-nums">{d.dia}</b></>, `${d.semana}, dia ${d.dia}`),
+            chip(dia === d.iso, () => setDia(d.iso), <><small className="block text-[12px] opacity-80">{d.semana}</small><b className="text-[18px] tabular-nums">{d.dia}</b></>, `${d.semana}, dia ${d.dia}`, d.iso),
           )}
         </div>
       </fieldset>
@@ -120,7 +120,7 @@ function Formulario({ codigo, titulo }: { codigo: string; titulo: string }) {
       <div aria-hidden="true" className="absolute -left-[9999px] size-px overflow-hidden">
         <label>
           Não preencha
-          <input name="site" tabIndex={-1} autoComplete="off" />
+          <input name="cl_extra" tabIndex={-1} autoComplete="off" />
         </label>
       </div>
 

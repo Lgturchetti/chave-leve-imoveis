@@ -12,7 +12,12 @@ function texto(fd: FormData, campo: string, max: number) {
 export async function enviarProprietario(_anterior: EstadoProprietario, fd: FormData): Promise<EstadoProprietario> {
   const inicio = Number(fd.get("inicio"));
   const decorrido = Date.now() - inicio;
-  if (texto(fd, "site", 100) || !Number.isFinite(inicio) || decorrido < 2500 || decorrido > 86_400_000) return { status: "enviado" };
+  // Mesmas armadilhas do pedido de visita (ver imovel/actions.ts)
+  const motivo = texto(fd, "cl_extra", 100) ? "campo-armadilha" : !Number.isFinite(inicio) ? "sem horário" : decorrido < 1200 ? `rápido demais (${decorrido} ms)` : decorrido > 86_400_000 ? "formulário velho" : "";
+  if (motivo) {
+    console.warn("proprietario barrado:", motivo);
+    return { status: "enviado" };
+  }
 
   const valores = {
     nome: texto(fd, "nome", 80),

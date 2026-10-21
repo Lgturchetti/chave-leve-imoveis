@@ -5,7 +5,7 @@
 import type { EstadoVisita } from "@/data/visita";
 import { supabasePublico } from "@/lib/supabase/publico";
 
-const TEMPO_MINIMO_MS = 2500;
+const TEMPO_MINIMO_MS = 1200; // preenchimento automático do navegador + clique leva ~2 s; robô leva milissegundos
 const TEMPO_MAXIMO_MS = 24 * 60 * 60 * 1000;
 const DIA = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -18,7 +18,10 @@ export async function pedirVisita(_anterior: EstadoVisita, fd: FormData): Promis
   // Armadilhas contra robôs: campo escondido ou envio rápido demais → finge sucesso
   const inicio = Number(fd.get("inicio"));
   const decorrido = Date.now() - inicio;
-  if (texto(fd, "site", 100) || !Number.isFinite(inicio) || decorrido < TEMPO_MINIMO_MS || decorrido > TEMPO_MAXIMO_MS) {
+  // O campo-armadilha tem nome que navegador nenhum preenche sozinho ("site" era preenchido por alguns)
+  const motivo = texto(fd, "cl_extra", 100) ? "campo-armadilha" : !Number.isFinite(inicio) ? "sem horário" : decorrido < TEMPO_MINIMO_MS ? `rápido demais (${decorrido} ms)` : decorrido > TEMPO_MAXIMO_MS ? "formulário velho" : "";
+  if (motivo) {
+    console.warn("pedirVisita barrado:", motivo);
     return { status: "enviado" };
   }
 

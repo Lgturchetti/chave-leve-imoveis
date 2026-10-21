@@ -183,11 +183,11 @@ function MapaComLista({ itens, ativo, grade }: { itens: ImovelCompleto[]; ativo:
   };
 
   return (
-    <div className="relative mt-3 h-[calc(100dvh-var(--altura-cabecalho)-200px)] min-h-[420px] lg:grid lg:h-[calc(100dvh-var(--altura-cabecalho)-190px)] lg:grid-cols-[minmax(0,560px)_1fr]">
+    <div className="relative mt-3 h-[calc(100dvh-var(--altura-cabecalho)-200px)] min-h-[420px] lg:grid lg:h-[calc(100dvh-var(--altura-cabecalho)-190px)] lg:grid-cols-[minmax(0,560px)_1fr] lg:grid-rows-[minmax(0,1fr)]">
       <div
         ref={gaveta}
         data-aberta={aberta || undefined}
-        className="absolute inset-x-0 bottom-0 z-10 flex h-[88%] translate-y-[calc(100%-120px)] flex-col rounded-t-[22px] bg-fundo shadow-flutua transition-transform duration-[380ms] ease-gaveta data-aberta:translate-y-0 motion-reduce:transition-none lg:static lg:h-auto lg:translate-y-0 lg:rounded-none lg:shadow-none"
+        className="absolute inset-x-0 bottom-0 z-10 flex h-[88%] translate-y-[calc(100%-120px)] flex-col rounded-t-[22px] bg-fundo shadow-flutua transition-transform duration-[380ms] ease-gaveta data-aberta:translate-y-0 motion-reduce:transition-none lg:static lg:h-full lg:min-h-0 lg:translate-y-0 lg:rounded-none lg:shadow-none"
       >
         <button
           type="button"

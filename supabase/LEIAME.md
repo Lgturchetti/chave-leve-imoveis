@@ -60,3 +60,6 @@ Os imóveis ficam em cache por até 1 hora (tag `imoveis`); o painel vai limpar 
 ## /security-review (21/10/2026)
 Rodado numa cópia temporária com base vazia (o comando só revisa o que difere do GitHub). **Nenhuma vulnerabilidade.** Único ponto levantado e descartado como intencional: o visitante da demo lê pedidos, contatos e endereços (dados de exemplo, aviso antes do envio, limpeza às 3h).
 **Antes de reaproveitar este projeto para um cliente real:** remover a demo (função `demo`, perfil e login `visitante@example.com`, políticas e travas da `0004_demo.sql`, agenda `restaurar-demo` no pg_cron, botão "Ver o painel como visitante") e voltar as frases dos formulários que estão nos comentários.
+
+## Strix (pentest com IA) — 21/10/2026
+Rodado contra o site local (produção) + código, modo `quick`, Sonnet, limite US$ 2. **Resultado inconclusivo:** gastou os US$ 2 só na fase de leitura (leu os 34 arquivos de segurança, montou um modelo de ameaças correto, começou a sondar o site) e parou no limite ANTES de atacar. "0 vulnerabilidades" = não achou no que alcançou, não é atestado. Confirmou que a cópia enviada não tinha `.env`. Para o Strix atacar de fato: mais orçamento (~US$ 5) OU só o site sem o código OU modelo mais barato. Segurança deste site cobre-se pelo `/security-review` (limpo) + revisão manual + 54 testes de RLS.

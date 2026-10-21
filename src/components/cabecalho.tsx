@@ -45,7 +45,7 @@ export function Cabecalho() {
             </svg>
             <span className="tabular-nums">{lista.length}</span>
           </Link>
-          <Link href="/painel" className="botao botao-contorno botao-pequeno hidden sm:inline-flex">
+          <Link href="/painel" className="botao botao-contorno botao-pequeno">
             Entrar
           </Link>
         </div>

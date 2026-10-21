@@ -2,7 +2,7 @@
 
 import { Drawer } from "@base-ui/react/drawer";
 import { useActionState, useEffect, useRef, useState } from "react";
-import { pedirVisita } from "@/app/imovel/actions";
+import { pedirVisita } from "@/app/(site)/imovel/actions";
 import { type CampoVisita, type EstadoVisita, proximosDias } from "@/data/visita";
 
 const inicial: EstadoVisita = { status: "inicial" };

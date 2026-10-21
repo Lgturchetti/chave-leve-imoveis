@@ -3,7 +3,7 @@
 // Pedido de visita. Valida tudo de novo no servidor (o navegador pode ser burlado).
 // Grava em `visitas` (Supabase). O banco só aceita criar pedido, nunca ler: confere de novo o imóvel e a data.
 import type { EstadoVisita } from "@/data/visita";
-import { supabasePublico } from "@/lib/supabase";
+import { supabasePublico } from "@/lib/supabase/publico";
 
 const TEMPO_MINIMO_MS = 2500;
 const TEMPO_MAXIMO_MS = 24 * 60 * 60 * 1000;

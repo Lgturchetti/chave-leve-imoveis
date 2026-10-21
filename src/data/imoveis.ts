@@ -2,7 +2,7 @@
 // Só o que é público: o endereço exato nunca é lido aqui (o banco nem deixa).
 import { cacheLife, cacheTag } from "next/cache";
 import { UFSM } from "@/data/site";
-import { supabasePublico, urlFoto } from "@/lib/supabase";
+import { supabasePublico, urlFoto } from "@/lib/supabase/publico";
 
 export type Corretor = { id: string; nome: string; creci: string; whatsapp: string; foto?: string };
 export type Foto = { url: string; alt: string };
@@ -100,8 +100,24 @@ export async function listarImoveis(): Promise<ImovelCompleto[]> {
   return data.map((l) => completar(converter(l)));
 }
 
+// Um anúncio: cache próprio por código. Um imóvel recém-publicado nunca esteve em cache,
+// então aparece já na primeira visita (não depende da lista geral ser atualizada).
 export async function buscarImovel(codigo: string): Promise<ImovelCompleto | null> {
   if (!/^CL-\d{4}$/i.test(codigo)) return null;
-  const lista = await listarImoveis();
-  return lista.find((m) => m.codigo.toLowerCase() === codigo.toLowerCase()) ?? null;
+  return buscarImovelNoBanco(codigo.toUpperCase());
+}
+
+async function buscarImovelNoBanco(codigo: string): Promise<ImovelCompleto | null> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("imoveis", `imovel-${codigo}`);
+  const { data, error } = await supabasePublico
+    .from("imoveis")
+    .select(COLUNAS)
+    .eq("codigo", codigo)
+    .in("status", ["disponivel", "reservado"])
+    .returns<Linha[]>()
+    .maybeSingle();
+  if (error) throw new Error(`Supabase: ${error.message}`);
+  return data ? completar(converter(data as Linha)) : null;
 }

@@ -10,6 +10,9 @@ if (!url || !chave) throw new Error("Faltam NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBL
 
 export const supabasePublico = createClient(url, chave, {
   auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+  // Sem cache de fetch do Next: o cache é só o "use cache" de listarImoveis (tag "imoveis"),
+  // senão a resposta velha do banco volta mesmo depois de o painel avisar que mudou
+  global: { fetch: (entrada, opcoes) => fetch(entrada, { ...opcoes, cache: "no-store" }) },
 });
 
 export const urlFoto = (caminho: string) => `${url}/storage/v1/object/public/fotos/${caminho}`;

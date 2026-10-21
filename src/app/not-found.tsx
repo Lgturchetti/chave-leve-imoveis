@@ -1,13 +1,16 @@
-import Link from "next/link";
+import { Cabecalho } from "@/components/cabecalho";
+import { NaoEncontrada } from "@/components/nao-encontrada";
+import { Rodape } from "@/components/rodape";
 
-export default function NaoEncontrada() {
+// Endereço que não existe em lugar nenhum: mesma página, com cabeçalho e rodapé do site
+export default function NaoEncontradaGeral() {
   return (
-    <div className="mx-auto max-w-xl px-margem py-24 text-center">
-      <h1 className="text-[clamp(30px,5vw,48px)]">Não achamos essa página.</h1>
-      <p className="mt-3 text-suave">O imóvel pode ter sido alugado, ou o endereço mudou.</p>
-      <Link href="/" className="botao botao-acao mt-6">
-        Ver imóveis disponíveis
-      </Link>
-    </div>
+    <>
+      <Cabecalho />
+      <main id="conteudo" className="flex-1">
+        <NaoEncontrada />
+      </main>
+      <Rodape />
+    </>
   );
 }

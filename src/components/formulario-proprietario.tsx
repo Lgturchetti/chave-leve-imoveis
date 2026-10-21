@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef } from "react";
-import { enviarProprietario } from "@/app/proprietarios/actions";
+import { enviarProprietario } from "@/app/(site)/proprietarios/actions";
 import type { CampoProprietario, EstadoProprietario } from "@/data/proprietario";
 
 const inicial: EstadoProprietario = { status: "inicial" };

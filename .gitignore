@@ -41,3 +41,6 @@ yarn-error.log*
 next-env.d.ts
 
 # protótipos e quadro de identidade ficam no repositório (histórico das decisões)
+
+# acessos de teste (senhas)
+*.local.md

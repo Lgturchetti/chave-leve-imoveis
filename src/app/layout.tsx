@@ -1,7 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Hanken_Grotesk, Sora } from "next/font/google";
-import { Cabecalho } from "@/components/cabecalho";
-import { Rodape } from "@/components/rodape";
 import { site } from "@/data/site";
 import "./globals.css";
 
@@ -30,11 +28,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <a href="#conteudo" className="sr-only z-50 rounded-full bg-tinta px-4 py-2 font-semibold text-white focus:not-sr-only focus:fixed focus:left-4 focus:top-4">
           Pular para o conteúdo
         </a>
-        <Cabecalho />
-        <main id="conteudo" className="flex-1">
-          {children}
-        </main>
-        <Rodape />
+        {children}
       </body>
     </html>
   );

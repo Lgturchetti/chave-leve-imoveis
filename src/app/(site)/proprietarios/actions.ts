@@ -2,7 +2,7 @@
 
 // Proprietário interessado: grava em `proprietarios` (Supabase; o público só cria, nunca lê).
 import type { EstadoProprietario } from "@/data/proprietario";
-import { supabasePublico } from "@/lib/supabase";
+import { supabasePublico } from "@/lib/supabase/publico";
 
 function texto(fd: FormData, campo: string, max: number) {
   const v = fd.get(campo);

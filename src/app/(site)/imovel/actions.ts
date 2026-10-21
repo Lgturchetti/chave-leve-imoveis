@@ -6,7 +6,6 @@ import type { EstadoVisita } from "@/data/visita";
 import { supabasePublico } from "@/lib/supabase/publico";
 
 const TEMPO_MINIMO_MS = 1200; // preenchimento automático do navegador + clique leva ~2 s; robô leva milissegundos
-const TEMPO_MAXIMO_MS = 24 * 60 * 60 * 1000;
 const DIA = /^\d{4}-\d{2}-\d{2}$/;
 
 function texto(fd: FormData, campo: string, max: number) {
@@ -15,13 +14,13 @@ function texto(fd: FormData, campo: string, max: number) {
 }
 
 export async function pedirVisita(_anterior: EstadoVisita, fd: FormData): Promise<EstadoVisita> {
-  // Armadilhas contra robôs: campo escondido ou envio rápido demais → finge sucesso
+  // Contra robôs: envio rápido demais → finge sucesso (o robô não percebe que foi barrado)
   const inicio = Number(fd.get("inicio"));
   const decorrido = Date.now() - inicio;
-  // O campo-armadilha tem nome que navegador nenhum preenche sozinho ("site" era preenchido por alguns)
-  const motivo = texto(fd, "cl_extra", 100) ? "campo-armadilha" : !Number.isFinite(inicio) ? "sem horário" : decorrido < TEMPO_MINIMO_MS ? `rápido demais (${decorrido} ms)` : decorrido > TEMPO_MAXIMO_MS ? "formulário velho" : "";
-  if (motivo) {
-    console.warn("pedirVisita barrado:", motivo);
+  // Só o tempo mínimo (decidido pelo Lorenzo: preenchimento automático é bem-vindo; reCAPTCHA talvez depois).
+  // Sem horário válido o pedido passa: melhor um robô a mais que um cliente perdido.
+  if (inicio > 0 && decorrido < TEMPO_MINIMO_MS) {
+    console.warn("pedirVisita barrado: rápido demais", decorrido, "ms");
     return { status: "enviado" };
   }
 

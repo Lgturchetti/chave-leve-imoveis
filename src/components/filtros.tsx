@@ -41,6 +41,7 @@ export function Filtros({
 
   const chip = (marcado: boolean, onClick: () => void, texto: string) => (
     <button
+      key={texto}
       type="button"
       aria-pressed={marcado}
       onClick={onClick}

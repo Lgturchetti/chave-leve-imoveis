@@ -46,7 +46,8 @@ function Formulario({ codigo, titulo }: { codigo: string; titulo: string }) {
 
   useEffect(() => {
     if (!abertoEm.current) abertoEm.current = Date.now();
-    if (inicio.current) inicio.current.value = String(abertoEm.current);
+    // defaultValue também: o React limpa o formulário depois de cada envio e a limpeza volta ao valor padrão
+    if (inicio.current) inicio.current.defaultValue = inicio.current.value = String(abertoEm.current);
     if (estado.status === "erro") (document.querySelector<HTMLElement>("[data-visita] [aria-invalid=true]") ?? aviso.current)?.focus();
     if (estado.status === "enviado") aviso.current?.focus();
   }, [estado]);
@@ -117,12 +118,6 @@ function Formulario({ codigo, titulo }: { codigo: string; titulo: string }) {
       <input type="hidden" name="dia" value={dia} />
       <input type="hidden" name="turno" value={turno} />
       <input ref={inicio} type="hidden" name="inicio" defaultValue="0" />
-      <div aria-hidden="true" className="absolute -left-[9999px] size-px overflow-hidden">
-        <label>
-          Não preencha
-          <input name="cl_extra" tabIndex={-1} autoComplete="off" />
-        </label>
-      </div>
 
       <button type="submit" disabled={enviando} className="botao botao-acao mt-5 w-full">
         {enviando ? "Enviando…" : "Pedir visita"}

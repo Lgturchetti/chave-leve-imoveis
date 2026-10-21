@@ -25,7 +25,8 @@ export function FormularioProprietario() {
 
   useEffect(() => {
     if (!abertoEm.current) abertoEm.current = Date.now();
-    if (inicio.current) inicio.current.value = String(abertoEm.current);
+    // defaultValue também: o React limpa o formulário depois de cada envio e a limpeza volta ao valor padrão
+    if (inicio.current) inicio.current.defaultValue = inicio.current.value = String(abertoEm.current);
     if (estado.status === "erro") (document.querySelector<HTMLElement>("[data-proprietario] [aria-invalid=true]") ?? aviso.current)?.focus();
     if (estado.status === "enviado") aviso.current?.focus();
   }, [estado]);
@@ -84,12 +85,6 @@ export function FormularioProprietario() {
         <textarea {...props("mensagem")} rows={4} maxLength={1000} className={campo} />
       </label>
       <input ref={inicio} type="hidden" name="inicio" defaultValue="0" />
-      <div aria-hidden="true" className="absolute -left-[9999px] size-px overflow-hidden">
-        <label>
-          Não preencha
-          <input name="cl_extra" tabIndex={-1} autoComplete="off" />
-        </label>
-      </div>
       <button type="submit" disabled={enviando} className="botao botao-acao w-full sm:w-auto">
         {enviando ? "Enviando…" : "Quero anunciar"}
       </button>

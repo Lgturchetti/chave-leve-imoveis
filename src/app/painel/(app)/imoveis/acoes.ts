@@ -4,6 +4,7 @@
 // o banco (RLS) garante que o corretor só mexe no que é dele.
 import { revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
+import { naBiblioteca } from "@/data/biblioteca";
 import { exigirSessao } from "@/lib/painel";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -15,6 +16,16 @@ const MAX_FOTOS = 15;
 // ver a versão de segundos atrás (o Next atualiza em segundo plano); a seguinte já vem nova.
 // Anúncio recém-publicado aparece na hora (cache por código em data/imoveis.ts).
 const atualizarSite = () => revalidateTag("imoveis", { expire: 0 });
+
+// Recusas do banco com mensagem própria (travas da demonstração, migração 0004_demo.sql)
+const recusa = (erro: { code?: string } | null, padrao: string) =>
+  erro?.code === "CLB01"
+    ? "Esse texto não pode ser usado na demonstração (links e palavrões são bloqueados)."
+    : erro?.code === "CLL01"
+      ? "A demonstração permite até 10 imóveis novos por dia. Edite um dos que já existem."
+      : erro?.code === "CLL02"
+        ? `No máximo ${MAX_FOTOS} fotos por imóvel.`
+        : padrao;
 
 export type CampoImovel =
   | "titulo" | "tipo" | "bairro" | "endereco" | "regiao" | "quartos" | "banheiros" | "area" | "vagas"
@@ -84,7 +95,7 @@ export async function salvarImovel(_a: EstadoImovel, fd: FormData): Promise<Esta
 
   if (!id) {
     const { data, error } = await supabase.from("imoveis").insert(linha).select("codigo").single();
-    if (error || !data) return { status: "erro", mensagem: "Não foi possível criar o imóvel. Tente de novo." };
+    if (error || !data) return { status: "erro", mensagem: recusa(error, "Não foi possível criar o imóvel. Tente de novo.") };
     redirect(`/painel/imoveis/${data.codigo}?novo=1`);
   }
 
@@ -99,7 +110,7 @@ export async function salvarImovel(_a: EstadoImovel, fd: FormData): Promise<Esta
     .from("imoveis")
     .update({ ...linha, publicado_em: publico && !atual.publicado_em ? new Date().toISOString() : atual.publicado_em })
     .eq("id", id);
-  if (error) return { status: "erro", mensagem: "Não foi possível salvar. Tente de novo." };
+  if (error) return { status: "erro", mensagem: recusa(error, "Não foi possível salvar. Tente de novo.") };
 
   atualizarSite();
   return { status: "salvo", mensagem: publico ? "Salvo. Já está no site." : "Salvo." };
@@ -129,7 +140,24 @@ export async function adicionarFoto(imovelId: string, caminho: string, alt: stri
     .insert({ imovel_id: imovelId, caminho, alt: alt.trim().slice(0, 140) || "Foto do imóvel", ordem })
     .select("id, caminho, alt, ordem")
     .single();
-  if (error || !data) return { erro: "Não foi possível salvar a foto." };
+  if (error || !data) return { erro: recusa(error, "Não foi possível salvar a foto.") };
+  atualizarSite();
+  return { foto: data };
+}
+
+// Demonstração: em vez de enviar arquivo, o visitante escolhe uma foto da biblioteca de exemplo
+export async function adicionarFotoBiblioteca(imovelId: string, caminho: string, alt: string): Promise<{ foto?: FotoPainel; erro?: string }> {
+  const { supabase, demo } = await exigirSessao();
+  if (!demo || !UUID.test(imovelId) || !naBiblioteca(caminho)) return { erro: "Foto inválida." };
+  const { data: fotos } = await supabase.from("fotos").select("ordem").eq("imovel_id", imovelId);
+  if ((fotos?.length ?? 0) >= MAX_FOTOS) return { erro: `No máximo ${MAX_FOTOS} fotos por imóvel.` };
+  const ordem = Math.max(-1, ...(fotos ?? []).map((f) => f.ordem)) + 1;
+  const { data, error } = await supabase
+    .from("fotos")
+    .insert({ imovel_id: imovelId, caminho, alt: alt.trim().slice(0, 140) || "Foto do imóvel", ordem })
+    .select("id, caminho, alt, ordem")
+    .single();
+  if (error || !data) return { erro: recusa(error, "Não foi possível adicionar a foto.") };
   atualizarSite();
   return { foto: data };
 }
@@ -166,7 +194,7 @@ export async function legendarFoto(fotoId: string, alt: string): Promise<{ erro?
   const limpo = alt.trim().replace(/\s+/g, " ").slice(0, 140);
   if (!UUID.test(fotoId) || limpo.length < 3) return { erro: "Descreva a foto com pelo menos 3 letras." };
   const { error } = await supabase.from("fotos").update({ alt: limpo }).eq("id", fotoId);
-  if (error) return { erro: "Não foi possível salvar a descrição." };
+  if (error) return { erro: recusa(error, "Não foi possível salvar a descrição.") };
   atualizarSite();
   return {};
 }

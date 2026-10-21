@@ -33,5 +33,18 @@ Os imóveis ficam em cache por até 1 hora (tag `imoveis`); o painel vai limpar 
 - Aviso do verificador que fica: `senha_trocada()` pode ser chamada por quem tem login — de propósito (só desliga o aviso de senha provisória da própria pessoa).
 - Logins de teste: `ACESSOS.local.md` (fora do Git).
 
+## Conta de demonstração (parte 4)
+- `migrations/0004_demo.sql`: papel **demo** ("Visitante"). Vê e mexe em imóveis, fotos, visitas e proprietários como o dono, com travas no banco:
+  - fotos só da biblioteca `exemplo/` (lista em `private.foto_da_biblioteca` e em `src/data/biblioteca.ts`, mudar nos dois); nada no armazenamento;
+  - imóvel só para corretor que aparece no site; não mexe em perfis/equipe;
+  - links e palavrões barrados (`private.texto_proibido`, erro `CLB01`); até 10 imóveis novos por dia (`CLL01`); 15 fotos por imóvel para todos (`CLL02`).
+- `functions/demo`: entrada sem senha (gera link de uso único sem mandar e-mail; o site troca pelo login). Cria o login `visitante@example.com` + perfil na 1ª vez. `verify_jwt` desligado de propósito (é pública).
+- **Limpeza toda noite às 3h (Brasília)**: `pg_cron` roda `private.restaurar_demo()`, que apaga imóveis, fotos, visitas e proprietários e copia de volta de `private.demo_*` (cópia tirada em 21/10/2026), com as datas andando junto com o calendário. Vale para o banco inteiro, inclusive o que a dona de teste mudar. Equipe e logins não são tocados.
+- Rodar a limpeza na mão (SQL Editor): `select private.restaurar_demo();`
+- Mudar os dados originais: ajustar pelo painel como dona e tirar cópia nova (`truncate private.demo_imoveis; insert into private.demo_imoveis select * from public.imoveis;` e igual para fotos, visitas e proprietários; atualizar `private.demo_base` com a data do dia).
+- Arquivos que a dona enviar não são apagados pela limpeza (o Supabase não deixa apagar arquivo pelo SQL); só sobram soltos no armazenamento.
+- O site guarda os imóveis em cache por até 1 hora: depois das 3h, a versão antiga pode aparecer até umas 4h.
+- Testado em 21/10/2026: 23 ataques como visitante (todos barrados ou permitidos como esperado), limpeza, dona e corretora sem mudança.
+
 ## A fazer no painel do Supabase (pelo Lorenzo, 1 minuto)
 - Authentication → Sign In / Providers → desligar **"Allow new users to sign up"** (só o dono cria contas; hoje quem se cadastrasse sozinho não veria nada, mas é melhor fechar a porta).

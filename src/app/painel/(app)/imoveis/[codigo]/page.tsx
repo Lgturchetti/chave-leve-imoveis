@@ -54,7 +54,7 @@ async function Conteudo({ params, searchParams }: PageProps<"/painel/imoveis/[co
         </p>
       )}
       <div className="mt-6 grid gap-6">
-        <FotosImovel imovelId={dados.id} titulo={dados.titulo} fotosIniciais={ordenadas} urlBase={urlFoto("").replace(/\/$/, "")} />
+        <FotosImovel imovelId={dados.id} titulo={dados.titulo} fotosIniciais={ordenadas} urlBase={urlFoto("").replace(/\/$/, "")} demo={sessao.demo} />
         <FormImovel imovel={dados} bairros={bairros} corretores={corretores} dono={sessao.dono} qtdFotos={fotos.length} />
         {sessao.dono && <BotaoApagarImovel id={dados.id} titulo={dados.titulo} />}
       </div>

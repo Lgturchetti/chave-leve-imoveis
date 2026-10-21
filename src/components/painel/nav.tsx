@@ -41,13 +41,13 @@ const icones = {
   ),
 };
 
-type Item = { href: string; nome: string; icone: keyof typeof icones; donoSo?: boolean; celular?: boolean };
+type Item = { href: string; nome: string; icone: keyof typeof icones; donoSo?: boolean; semDemo?: boolean; celular?: boolean };
 const itens: Item[] = [
   { href: "/painel", nome: "Início", icone: "inicio", celular: true },
   { href: "/painel/imoveis", nome: "Imóveis", icone: "imoveis", celular: true },
   { href: "/painel/visitas", nome: "Visitas", icone: "visitas", celular: true },
   { href: "/painel/proprietarios", nome: "Proprietários", icone: "proprietarios", donoSo: true },
-  { href: "/painel/equipe", nome: "Equipe", icone: "equipe", donoSo: true },
+  { href: "/painel/equipe", nome: "Equipe", icone: "equipe", donoSo: true, semDemo: true },
   { href: "/painel/conta", nome: "Conta", icone: "conta", celular: true },
 ];
 
@@ -57,18 +57,18 @@ const Icone = ({ nome }: { nome: keyof typeof icones }) => (
   </svg>
 );
 
-export function NavPainel({ dono, nome }: { dono: boolean; nome: string }) {
-  return <NavBase dono={dono} nome={nome} caminho={usePathname()} />;
+export function NavPainel({ dono, demo, nome }: { dono: boolean; demo: boolean; nome: string }) {
+  return <NavBase dono={dono} demo={demo} nome={nome} caminho={usePathname()} />;
 }
 
 // Enquanto o login é conferido: mesma barra, sem item marcado (não lê o endereço)
 export function NavEsqueleto() {
-  return <NavBase dono={false} nome="" caminho="" />;
+  return <NavBase dono={false} demo={false} nome="" caminho="" />;
 }
 
-function NavBase({ dono, nome, caminho }: { dono: boolean; nome: string; caminho: string }) {
+function NavBase({ dono, demo, nome, caminho }: { dono: boolean; demo: boolean; nome: string; caminho: string }) {
   const ativo = (href: string) => (href === "/painel" ? caminho === href : caminho.startsWith(href));
-  const visiveis = itens.filter((i) => !i.donoSo || dono);
+  const visiveis = itens.filter((i) => (!i.donoSo || dono) && !(i.semDemo && demo));
 
   return (
     <>

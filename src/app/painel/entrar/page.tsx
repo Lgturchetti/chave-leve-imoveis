@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { Marca } from "@/components/marca";
+import { EntrarDemo } from "@/components/painel/entrar-demo";
 import { FormEntrar } from "@/components/painel/form-entrar";
 
 export const metadata: Metadata = { title: "Entrar" };
@@ -20,6 +21,7 @@ export default function Entrar() {
           <FormEntrar />
         </Suspense>
         <p className="mt-6 text-[14px] text-suave">Esqueceu a senha? Peça ao dono da imobiliária para gerar uma nova.</p>
+        <EntrarDemo />
       </div>
     </main>
   );

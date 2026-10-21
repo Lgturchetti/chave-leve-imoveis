@@ -14,7 +14,9 @@ export type Perfil = {
   trocar_senha: boolean;
 };
 
-export type Sessao = { supabase: Awaited<ReturnType<typeof supabaseServidor>>; perfil: Perfil; dono: boolean };
+// dono = vê e mexe em tudo (dono de verdade OU visitante da demonstração).
+// demo = visitante: as regras do banco limitam o que ele grava; o site esconde equipe e senha.
+export type Sessao = { supabase: Awaited<ReturnType<typeof supabaseServidor>>; perfil: Perfil; dono: boolean; demo: boolean };
 
 // Confere o login (token verificado) e busca o perfil. Usar em TODA página e ação do painel.
 // Sem login → tela de entrar. Sem perfil ativo → aviso. Senha provisória → obriga a trocar.
@@ -30,15 +32,17 @@ export async function exigirSessao(opcoes: { trocandoSenha?: boolean } = {}): Pr
     .select("id, user_id, nome, papel, creci, whatsapp, ativo, trocar_senha")
     .eq("user_id", uid)
     .maybeSingle<Perfil>();
-  if (!perfil || !perfil.ativo || perfil.papel === "demo") redirect("/painel/entrar?aviso=sem-acesso");
+  if (!perfil || !perfil.ativo) redirect("/painel/entrar?aviso=sem-acesso");
   if (perfil.trocar_senha && !opcoes.trocandoSenha) redirect("/painel/senha");
 
-  return { supabase, perfil, dono: perfil.papel === "dono" };
+  const demo = perfil.papel === "demo";
+  return { supabase, perfil, dono: perfil.papel === "dono" || demo, demo };
 }
 
-export async function exigirDono(): Promise<Sessao> {
+// Equipe e senhas: só o dono de verdade. Proprietários: o visitante da demonstração também vê.
+export async function exigirDono(opcoes: { permitirDemo?: boolean } = {}): Promise<Sessao> {
   const s = await exigirSessao();
-  if (!s.dono) redirect("/painel");
+  if (!s.dono || (s.demo && !opcoes.permitirDemo)) redirect("/painel");
   return s;
 }
 

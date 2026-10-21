@@ -14,7 +14,8 @@ import { arrayMove, rectSortingStrategy, SortableContext, sortableKeyboardCoordi
 import { CSS } from "@dnd-kit/utilities";
 import Image from "next/image";
 import { useRef, useState, useTransition } from "react";
-import { adicionarFoto, legendarFoto, ordenarFotos, removerFoto, type FotoPainel } from "@/app/painel/(app)/imoveis/acoes";
+import { adicionarFoto, adicionarFotoBiblioteca, legendarFoto, ordenarFotos, removerFoto, type FotoPainel } from "@/app/painel/(app)/imoveis/acoes";
+import { BIBLIOTECA } from "@/data/biblioteca";
 import { supabaseNavegador } from "@/lib/supabase/navegador";
 
 const MAX = 15;
@@ -37,14 +38,28 @@ async function preparar(arquivo: File): Promise<{ blob: Blob; ext: "webp" | "jpg
   return { blob: jpg, ext: "jpg" };
 }
 
-type Props = { imovelId: string; titulo: string; fotosIniciais: (FotoPainel & { url: string })[]; urlBase: string };
+// demo = visitante da demonstração: escolhe da biblioteca de exemplo em vez de enviar arquivo
+type Props = { imovelId: string; titulo: string; fotosIniciais: (FotoPainel & { url: string })[]; urlBase: string; demo?: boolean };
 
-export function FotosImovel({ imovelId, titulo, fotosIniciais, urlBase }: Props) {
+export function FotosImovel({ imovelId, titulo, fotosIniciais, urlBase, demo = false }: Props) {
   const [fotos, setFotos] = useState(fotosIniciais);
   const [enviando, setEnviando] = useState<{ feitas: number; total: number } | null>(null);
   const [aviso, setAviso] = useState<{ tipo: "erro" | "ok"; texto: string } | null>(null);
   const [, iniciar] = useTransition();
   const entrada = useRef<HTMLInputElement>(null);
+  const [biblioteca, setBiblioteca] = useState(false);
+  const [escolhendo, setEscolhendo] = useState<string | null>(null);
+
+  async function escolher(caminho: string, alt: string) {
+    setEscolhendo(caminho);
+    setAviso(null);
+    const r = await adicionarFotoBiblioteca(imovelId, caminho, alt);
+    setEscolhendo(null);
+    if (r.erro || !r.foto) return setAviso({ tipo: "erro", texto: r.erro ?? "Não foi possível adicionar a foto." });
+    const nova = { ...r.foto, url: `${urlBase}/${r.foto.caminho}` };
+    setFotos((f) => [...f, nova]);
+    setAviso({ tipo: "ok", texto: "Foto adicionada." });
+  }
 
   const sensores = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -121,12 +136,45 @@ export function FotosImovel({ imovelId, titulo, fotosIniciais, urlBase }: Props)
           </h2>
           <p className="mt-1 text-[15px] text-suave">A primeira é a capa. Arraste pela alça para mudar a ordem.</p>
         </div>
+        {demo ? (
+          <button type="button" aria-expanded={biblioteca} aria-controls="biblioteca-fotos" onClick={() => setBiblioteca((b) => !b)} className="botao botao-acao botao-pequeno">
+            {biblioteca ? "Fechar biblioteca" : "Escolher da biblioteca"}
+          </button>
+        ) : (
         <label className={`botao botao-acao botao-pequeno ${enviando || fotos.length >= MAX ? "pointer-events-none opacity-60" : ""}`}>
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 2v12M2 8h12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
           {enviando ? `Enviando ${enviando.feitas + 1} de ${enviando.total}…` : "Adicionar fotos"}
           <input ref={entrada} type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple className="sr-only" disabled={Boolean(enviando) || fotos.length >= MAX} onChange={(e) => enviar(e.target.files)} />
         </label>
+        )}
       </div>
+
+      {demo && biblioteca && (
+        <div id="biblioteca-fotos" className="rounded-foto bg-fundo p-3 sm:p-4">
+          <p className="text-[14px] text-suave">Na demonstração, as fotos vêm desta biblioteca (não dá para enviar arquivo). Toque para adicionar.</p>
+          <ul className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6">
+            {BIBLIOTECA.map((b) => {
+              const usada = fotos.some((f) => f.caminho === b.caminho);
+              const bloqueada = usada || fotos.length >= MAX || escolhendo !== null;
+              return (
+                <li key={b.caminho}>
+                  <button
+                    type="button"
+                    disabled={bloqueada}
+                    onClick={() => escolher(b.caminho, b.alt)}
+                    aria-label={usada ? `${b.alt} (já está no imóvel)` : `Adicionar: ${b.alt}`}
+                    className="relative block select-none aspect-[4/3] w-full cursor-pointer overflow-hidden rounded-xl bg-superficie transition-transform duration-100 active:scale-[0.97] disabled:cursor-not-allowed"
+                  >
+                    <Image src={`${urlBase}/${b.caminho}`} alt="" fill sizes="(min-width: 1024px) 140px, 30vw" className={`object-cover ${usada ? "opacity-40" : ""}`} />
+                    {usada && <span className="absolute inset-x-1 bottom-1 rounded-full bg-white/90 px-2 py-0.5 text-center text-[11px] font-semibold">No imóvel</span>}
+                    {escolhendo === b.caminho && <span className="absolute inset-0 animate-pulse bg-white/50" aria-hidden="true" />}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
 
       <p role={aviso?.tipo === "erro" ? "alert" : "status"} className={`min-h-[1.5em] text-[14px] ${aviso?.tipo === "erro" ? "text-red-800" : "text-suave"}`}>
         {aviso?.texto}
@@ -135,10 +183,10 @@ export function FotosImovel({ imovelId, titulo, fotosIniciais, urlBase }: Props)
       {fotos.length === 0 && !enviando ? (
         <button
           type="button"
-          onClick={() => entrada.current?.click()}
+          onClick={() => (demo ? setBiblioteca(true) : entrada.current?.click())}
           className="grid min-h-40 cursor-pointer place-items-center rounded-foto border-2 border-dashed border-linha p-6 text-center text-suave transition-colors hover:border-acao hover:text-acao"
         >
-          Nenhuma foto ainda. Toque para escolher do celular ou do computador.
+          {demo ? "Nenhuma foto ainda. Toque para escolher da biblioteca." : "Nenhuma foto ainda. Toque para escolher do celular ou do computador."}
         </button>
       ) : (
         <DndContext sensors={sensores} collisionDetection={closestCenter} onDragEnd={aoSoltar} accessibility={{ screenReaderInstructions: { draggable: "Para mover, aperte espaço, use as setas e aperte espaço de novo para soltar." } }}>
@@ -164,11 +212,13 @@ function FotoItem({ foto, posicao, total, aoRemover }: { foto: FotoPainel & { ur
   const [alt, setAlt] = useState(foto.alt);
   const [altSalvo, setAltSalvo] = useState(foto.alt);
   const [salvo, setSalvo] = useState<"" | "ok" | "erro">("");
+  const [erroAlt, setErroAlt] = useState("");
 
   async function salvarAlt() {
     if (alt.trim() === altSalvo) return;
     const r = await legendarFoto(foto.id, alt);
     setSalvo(r.erro ? "erro" : "ok");
+    setErroAlt(r.erro ?? "");
     if (!r.erro) setAltSalvo(alt.trim());
   }
 
@@ -215,7 +265,7 @@ function FotoItem({ foto, posicao, total, aoRemover }: { foto: FotoPainel & { ur
           placeholder="O que aparece na foto"
           className="block w-full rounded-xl border border-linha bg-superficie px-3 py-2 text-[16px] focus:border-acao focus:outline-none focus:ring-2 focus:ring-acao/20"
         />
-        {salvo === "erro" && <span className="mt-1 block text-[13px] text-red-800">Descreva com pelo menos 3 letras.</span>}
+        {salvo === "erro" && <span className="mt-1 block text-[13px] text-red-800">{erroAlt || "Descreva com pelo menos 3 letras."}</span>}
       </label>
     </li>
   );

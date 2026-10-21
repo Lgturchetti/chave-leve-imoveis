@@ -8,21 +8,17 @@ import { sair } from "../../acoes-sessao";
 export const metadata: Metadata = { title: "Conta" };
 
 async function Conteudo() {
-  const { perfil, dono } = await exigirSessao();
+  const { perfil, dono, demo } = await exigirSessao();
   const links = [
-    ...(dono
-      ? [
-          { href: "/painel/proprietarios", nome: "Proprietários", desc: "Quem quer anunciar com a imobiliária" },
-          { href: "/painel/equipe", nome: "Equipe", desc: "Corretores, logins e senhas" },
-        ]
-      : []),
-    { href: "/painel/senha", nome: "Trocar minha senha", desc: "" },
+    ...(dono ? [{ href: "/painel/proprietarios", nome: "Proprietários", desc: "Quem quer anunciar com a imobiliária" }] : []),
+    ...(dono && !demo ? [{ href: "/painel/equipe", nome: "Equipe", desc: "Corretores, logins e senhas" }] : []),
+    ...(!demo ? [{ href: "/painel/senha", nome: "Trocar minha senha", desc: "" }] : []),
     { href: "/", nome: "Ver o site", desc: "Como os clientes veem" },
   ];
   return (
     <>
       <h1 className="text-[clamp(26px,4vw,34px)] [overflow-wrap:anywhere]">{perfil.nome}</h1>
-      <p className="mt-1 text-suave">{dono ? "Dono da imobiliária" : "Corretor"}</p>
+      <p className="mt-1 text-suave">{demo ? "Demonstração: você vê o painel como o dono da imobiliária (menos equipe e senhas)" : dono ? "Dono da imobiliária" : "Corretor"}</p>
       <ul className="mt-6 divide-y divide-linha rounded-cartao bg-superficie shadow-suave">
         {links.map((l) => (
           <li key={l.href}>

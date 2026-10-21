@@ -19,7 +19,7 @@ type Contato = { id: string; nome: string; whatsapp: string; bairro: string; men
 async function Conteudo({ searchParams }: PageProps<"/painel/proprietarios">) {
   const { situacao } = await searchParams;
   const aba = abas.find((a) => a.id === situacao) ?? abas[0];
-  const { supabase, perfil } = await exigirDono();
+  const { supabase, perfil } = await exigirDono({ permitirDemo: true });
   const { data } = await supabase.from("proprietarios").select("id, nome, whatsapp, bairro, mensagem, status, criado_em").in("status", aba.status).order("criado_em", { ascending: false }).limit(100);
   const contatos = (data ?? []) as Contato[];
 

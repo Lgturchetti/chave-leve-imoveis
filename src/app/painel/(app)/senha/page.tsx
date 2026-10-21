@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { FormSenha } from "@/components/painel/form-senha";
 import { exigirSessao } from "@/lib/painel";
@@ -6,7 +7,8 @@ import { exigirSessao } from "@/lib/painel";
 export const metadata: Metadata = { title: "Trocar senha" };
 
 async function Conteudo() {
-  const { perfil } = await exigirSessao({ trocandoSenha: true });
+  const { perfil, demo } = await exigirSessao({ trocandoSenha: true });
+  if (demo) redirect("/painel/conta");
   return (
     <>
       <h1 className="text-[clamp(26px,4vw,34px)]">{perfil.trocar_senha ? "Crie a sua senha" : "Trocar minha senha"}</h1>

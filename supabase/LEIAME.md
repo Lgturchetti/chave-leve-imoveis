@@ -56,3 +56,7 @@ Os imóveis ficam em cache por até 1 hora (tag `imoveis`); o painel vai limpar 
 - **Privacidade da demo:** os formulários públicos avisam, antes do envio, que o pedido aparece num painel aberto a visitantes (em site de cliente, voltar a frase original que está no comentário do código).
 - **Na Vercel:** regra de firewall como a da clínica — POST em `/imovel/*`, `/proprietarios` e `/painel/entrar` → limite de 5 por minuto por IP.
 - Falta: o Lorenzo rodar `/security-review` numa sessão aberta dentro de `~/projetos/imobiliaria`, e o Strix (pesquisar custo antes).
+
+## /security-review (21/10/2026)
+Rodado numa cópia temporária com base vazia (o comando só revisa o que difere do GitHub). **Nenhuma vulnerabilidade.** Único ponto levantado e descartado como intencional: o visitante da demo lê pedidos, contatos e endereços (dados de exemplo, aviso antes do envio, limpeza às 3h).
+**Antes de reaproveitar este projeto para um cliente real:** remover a demo (função `demo`, perfil e login `visitante@example.com`, políticas e travas da `0004_demo.sql`, agenda `restaurar-demo` no pg_cron, botão "Ver o painel como visitante") e voltar as frases dos formulários que estão nos comentários.

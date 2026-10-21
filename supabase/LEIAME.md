@@ -48,3 +48,11 @@ Os imóveis ficam em cache por até 1 hora (tag `imoveis`); o painel vai limpar 
 
 ## A fazer no painel do Supabase (pelo Lorenzo, 1 minuto)
 - Authentication → Sign In / Providers → desligar **"Allow new users to sign up"** (só o dono cria contas; hoje quem se cadastrasse sozinho não veria nada, mas é melhor fechar a porta).
+
+## Revisão de segurança manual (21/10/2026)
+- Cabeçalhos HTTP de segurança no `next.config.ts`; nenhuma chave secreta no site; `.env*` e `ACESSOS.local.md` fora do Git; nenhum HTML vindo do usuário renderizado sem escape.
+- Toda ação do painel confere o login (`exigirSessao`) e o banco confere de novo (RLS). Ações públicas validam no servidor, com campo-armadilha e tempo mínimo.
+- **Riscos que ficam (aceitos no portfólio):** (1) alguém pode criar pedidos direto pela API do Supabase com a chave pública, pulando a armadilha — a limpeza das 3h apaga; em site de cliente, pensar em Cloudflare Turnstile. (2) A função `demo` é pública (é a ideia); cada chamada só gera um link de uso único.
+- **Privacidade da demo:** os formulários públicos avisam, antes do envio, que o pedido aparece num painel aberto a visitantes (em site de cliente, voltar a frase original que está no comentário do código).
+- **Na Vercel:** regra de firewall como a da clínica — POST em `/imovel/*`, `/proprietarios` e `/painel/entrar` → limite de 5 por minuto por IP.
+- Falta: o Lorenzo rodar `/security-review` numa sessão aberta dentro de `~/projetos/imobiliaria`, e o Strix (pesquisar custo antes).

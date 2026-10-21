@@ -127,7 +127,8 @@ function Formulario({ codigo, titulo }: { codigo: string; titulo: string }) {
       <button type="submit" disabled={enviando} className="botao botao-acao mt-5 w-full">
         {enviando ? "Enviando…" : "Pedir visita"}
       </button>
-      <p className="mt-3 text-center text-[13px] text-suave">Usamos seus dados só para combinar a visita.</p>
+      {/* Site de cliente: "Usamos seus dados só para combinar a visita." Na demonstração o painel é aberto a visitantes. */}
+      <p className="mt-3 text-center text-[13px] text-suave">Site de demonstração: o pedido aparece num painel aberto a visitantes. Use nome e número fictícios.</p>
     </form>
   );
 }

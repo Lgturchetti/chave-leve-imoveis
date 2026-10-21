@@ -93,7 +93,8 @@ export function FormularioProprietario() {
       <button type="submit" disabled={enviando} className="botao botao-acao w-full sm:w-auto">
         {enviando ? "Enviando…" : "Quero anunciar"}
       </button>
-      <p className="text-[13px] text-suave">Usamos seus dados só para entrar em contato sobre o imóvel.</p>
+      {/* Site de cliente: "Usamos seus dados só para entrar em contato sobre o imóvel." Na demonstração o painel é aberto a visitantes. */}
+      <p className="text-[13px] text-suave">Site de demonstração: o contato aparece num painel aberto a visitantes. Use nome e número fictícios.</p>
     </form>
   );
 }

@@ -57,7 +57,7 @@ async function Conteudo({ searchParams }: PageProps<"/painel/visitas">) {
                   <div className="min-w-0">
                     <p className="font-titulo text-[19px] font-semibold first-letter:uppercase tracking-[-0.03em]">{quando}</p>
                     <p className="mt-1 [overflow-wrap:anywhere]">
-                      <span className="font-semibold">{v.nome}</span> · <span className="tabular-nums">{telefone(v.whatsapp)}</span>
+                      <span className="font-semibold">{v.nome}</span> · <span className="whitespace-nowrap tabular-nums">{telefone(v.whatsapp)}</span>
                     </p>
                   </div>
                   <SeloStatus status={v.status} rotulo={statusVisita[v.status]} />

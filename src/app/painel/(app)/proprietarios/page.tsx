@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { AbasFiltro } from "@/components/painel/abas-filtro";
 import { AcoesPedido } from "@/components/painel/acoes-pedido";
 import { Carregando, Pagina } from "@/components/painel/carregando";
+import { MensagemLonga } from "@/components/painel/mensagem-longa";
 import { SeloStatus } from "@/components/painel/selo-status";
 import { exigirDono, formatarQuando, linkZap, statusProprietario, telefone, type StatusPedido } from "@/lib/painel";
 
@@ -44,12 +45,12 @@ async function Conteudo({ searchParams }: PageProps<"/painel/proprietarios">) {
                   <div className="min-w-0">
                     <p className="font-titulo text-[19px] font-semibold tracking-[-0.03em] [overflow-wrap:anywhere]">{c.nome}</p>
                     <p className="mt-1 text-[15px] text-suave">
-                      <span className="tabular-nums">{telefone(c.whatsapp)}</span> · imóvel no {c.bairro}
+                      <span className="whitespace-nowrap tabular-nums">{telefone(c.whatsapp)}</span> · imóvel no {c.bairro}
                     </p>
                   </div>
                   <SeloStatus status={c.status} rotulo={statusProprietario[c.status]} />
                 </div>
-                {c.mensagem && <p className="mt-3 whitespace-pre-line rounded-2xl bg-fundo p-3 text-[15px] [overflow-wrap:anywhere]">{c.mensagem}</p>}
+                {c.mensagem && <MensagemLonga texto={c.mensagem} />}
                 <p className="mt-2 text-[13px] text-suave">Recebido em {formatarQuando(c.criado_em)}</p>
                 <AcoesPedido tabela="proprietarios" id={c.id} botoes={botoes} whatsapp={linkZap(c.whatsapp, msg)} />
               </li>

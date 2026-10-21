@@ -98,8 +98,9 @@ export function ListaImoveisPainel({ imoveis, dono }: { imoveis: ImovelLista[]; 
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-start justify-between gap-3">
-                    <p className="min-w-0 font-semibold leading-snug [overflow-wrap:anywhere]">{m.titulo}</p>
+                  {/* No celular estreito o selo fica acima do título, que assim usa a linha inteira */}
+                  <div className="flex flex-col-reverse items-start gap-1 min-[420px]:flex-row min-[420px]:justify-between min-[420px]:gap-3">
+                    <p className="min-w-0 font-semibold leading-snug [overflow-wrap:break-word]">{m.titulo}</p>
                     <SeloStatus status={m.status} rotulo={rotulos[m.status]} />
                   </div>
                   <p className="mt-0.5 truncate text-[14px] text-suave">

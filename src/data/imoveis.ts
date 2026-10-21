@@ -1,6 +1,8 @@
-// Imóveis FICTÍCIOS de exemplo. Na parte 2 estes dados passam a vir do Supabase
-// (mesmo formato: `Imovel`), e listarImoveis()/buscarImovel() mudam por dentro.
+// Imóveis vêm do Supabase (tabelas imoveis, fotos e perfis; dados de exemplo em supabase/semente.sql).
+// Só o que é público: o endereço exato nunca é lido aqui (o banco nem deixa).
+import { cacheLife, cacheTag } from "next/cache";
 import { UFSM } from "@/data/site";
+import { supabasePublico, urlFoto } from "@/lib/supabase";
 
 export type Corretor = { id: string; nome: string; creci: string; whatsapp: string; foto?: string };
 export type Foto = { url: string; alt: string };
@@ -31,114 +33,6 @@ export type Imovel = {
   publicadoEm: string; // AAAA-MM-DD
 };
 
-export const corretores: Corretor[] = [
-  { id: "rafaela", nome: "Rafaela Kunz", creci: "CRECI-RS 00001-F", whatsapp: "5555900000001" },
-  { id: "diego", nome: "Diego Martins", creci: "CRECI-RS 00002-F", whatsapp: "5555900000002" },
-  { id: "bruna", nome: "Bruna Lopes", creci: "CRECI-RS 00003-F", whatsapp: "5555900000003" },
-];
-const [rafaela, diego, bruna] = corretores;
-
-const f = (arquivo: string, alt: string): Foto => ({ url: `/fotos/${arquivo}.jpg`, alt });
-
-const base: Imovel[] = [
-  {
-    codigo: "CL-0142", titulo: "Kitnet mobiliada a 8 min da UFSM", tipo: "kitnet", bairro: "Camobi",
-    regiao: { lat: -29.7135, lon: -53.7185 }, quartos: 1, banheiros: 1, area: 28, vagas: 0,
-    mobiliado: true, aceitaPet: false, paraDividir: false, aluguel: 950, condominio: 180, iptu: 50,
-    descricao: "Kitnet clara com escrivaninha, cama de casal, cozinha americana e janela grande. Prédio com portão eletrônico e lavanderia coletiva.",
-    fotos: [f("quarto-estudante", "Quarto com cama e escrivaninha ao lado da janela"), f("studio", "Ambiente integrado com estante e mesa"), f("cozinha", "Cozinha clara com bancada")],
-    corretor: rafaela, status: "disponivel", publicadoEm: "2026-10-18",
-  },
-  {
-    codigo: "CL-0137", titulo: "Apartamento 2 quartos para dividir", tipo: "apartamento", bairro: "Camobi",
-    regiao: { lat: -29.7092, lon: -53.726 }, quartos: 2, banheiros: 1, area: 58, vagas: 1,
-    mobiliado: true, aceitaPet: false, paraDividir: true, aluguel: 1400, condominio: 260, iptu: 60,
-    descricao: "Dois quartos de solteiro do mesmo tamanho, sala com mesa de estudos e cozinha completa. Ótimo para dividir com um colega.",
-    fotos: [f("dividir", "Quarto com duas camas de solteiro"), f("jantar", "Sala de jantar com janela ampla"), f("sala", "Sala de estar com sofá bege")],
-    corretor: rafaela, status: "disponivel", publicadoEm: "2026-10-16",
-  },
-  {
-    codigo: "CL-0151", titulo: "Kitnet perto do RU", tipo: "kitnet", bairro: "Camobi",
-    regiao: { lat: -29.716, lon: -53.7215 }, quartos: 1, banheiros: 1, area: 24, vagas: 0,
-    mobiliado: false, aceitaPet: false, paraDividir: false, aluguel: 780, condominio: 120, iptu: 35,
-    descricao: "Kitnet compacta a poucos minutos do Restaurante Universitário. Sem móveis, com armários na cozinha.",
-    fotos: [f("kitnet-2", "Kitnet com cama e sofá"), f("kitnet", "Sala de kitnet com estante"), f("cozinha", "Cozinha com bancada")],
-    corretor: diego, status: "disponivel", publicadoEm: "2026-10-20",
-  },
-  {
-    codigo: "CL-0128", titulo: "Studio com escrivaninha", tipo: "studio", bairro: "Camobi",
-    regiao: { lat: -29.7055, lon: -53.733 }, quartos: 1, banheiros: 1, area: 32, vagas: 1,
-    mobiliado: true, aceitaPet: true, paraDividir: false, aluguel: 1050, condominio: 200, iptu: 45,
-    descricao: "Studio mobiliado com área de estudo, cama de casal e varanda. Aceita animal de pequeno porte.",
-    fotos: [f("studio", "Studio com estante e mesa"), f("studio-2", "Studio com sofá e cozinha integrada"), f("quarto-estudante", "Canto de estudo")],
-    corretor: diego, status: "disponivel", publicadoEm: "2026-10-12",
-  },
-  {
-    codigo: "CL-0133", titulo: "Apartamento 3 quartos para república", tipo: "apartamento", bairro: "Camobi",
-    regiao: { lat: -29.7038, lon: -53.7395 }, quartos: 3, banheiros: 2, area: 85, vagas: 1,
-    mobiliado: false, aceitaPet: true, paraDividir: true, aluguel: 1900, condominio: 280, iptu: 80,
-    descricao: "Três quartos e dois banheiros, ideal para república. Sala ampla e área de serviço separada.",
-    fotos: [f("jantar", "Sala de jantar com janela grande"), f("dividir", "Quarto com duas camas"), f("quarto", "Quarto com cama de casal")],
-    corretor: bruna, status: "disponivel", publicadoEm: "2026-10-10",
-  },
-  {
-    codigo: "CL-0155", titulo: "Kitnet em prédio novo", tipo: "kitnet", bairro: "Camobi",
-    regiao: { lat: -29.711, lon: -53.712 }, quartos: 1, banheiros: 1, area: 26, vagas: 0,
-    mobiliado: false, aceitaPet: true, paraDividir: false, aluguel: 890, condominio: 150, iptu: 40,
-    descricao: "Kitnet em prédio de 2024, com elevador e bicicletário. Aceita pet.",
-    fotos: [f("predio", "Fachada de prédio com sacadas"), f("kitnet", "Kitnet com estante"), f("studio-2", "Ambiente integrado")],
-    corretor: rafaela, status: "reservado", publicadoEm: "2026-10-19",
-  },
-  {
-    codigo: "CL-0119", titulo: "Apartamento 2 quartos no Centro", tipo: "apartamento", bairro: "Centro",
-    regiao: { lat: -29.6868, lon: -53.807 }, quartos: 2, banheiros: 1, area: 72, vagas: 1,
-    mobiliado: false, aceitaPet: false, paraDividir: false, aluguel: 1650, condominio: 320, iptu: 70,
-    descricao: "Apartamento amplo perto da Praça Saldanha Marinho, com sacada e garagem.",
-    fotos: [f("sala-4", "Sala com sofá e mesa de centro"), f("quarto", "Quarto de casal"), f("cozinha", "Cozinha planejada")],
-    corretor: bruna, status: "disponivel", publicadoEm: "2026-10-14",
-  },
-  {
-    codigo: "CL-0110", titulo: "Apartamento com sacada", tipo: "apartamento", bairro: "Centro",
-    regiao: { lat: -29.684, lon: -53.8115 }, quartos: 1, banheiros: 1, area: 48, vagas: 0,
-    mobiliado: true, aceitaPet: false, paraDividir: false, aluguel: 1150, condominio: 230, iptu: 55,
-    descricao: "Um quarto, mobiliado, com sacada e muita luz. Perto de mercados e linhas de ônibus para a UFSM.",
-    fotos: [f("sala-amarela", "Sala com sofá amarelo"), f("quarto", "Quarto com janela"), f("predio-3", "Fachada de prédio com janelas")],
-    corretor: diego, status: "disponivel", publicadoEm: "2026-10-08",
-  },
-  {
-    codigo: "CL-0145", titulo: "Casa com pátio", tipo: "casa", bairro: "Nossa Senhora de Lourdes",
-    regiao: { lat: -29.6935, lon: -53.7975 }, quartos: 3, banheiros: 2, area: 110, vagas: 2,
-    mobiliado: false, aceitaPet: true, paraDividir: false, aluguel: 2100, condominio: 0, iptu: 160,
-    descricao: "Casa com pátio gramado, churrasqueira e garagem para dois carros. Rua tranquila.",
-    fotos: [f("casa-patio", "Casa com varanda e árvore na frente"), f("sala-amarela", "Sala com sofá amarelo"), f("jantar", "Sala de jantar")],
-    corretor: bruna, status: "disponivel", publicadoEm: "2026-10-05",
-  },
-  {
-    codigo: "CL-0102", titulo: "Casa 2 quartos na Medianeira", tipo: "casa", bairro: "Medianeira",
-    regiao: { lat: -29.7005, lon: -53.8105 }, quartos: 2, banheiros: 1, area: 90, vagas: 1,
-    mobiliado: false, aceitaPet: true, paraDividir: false, aluguel: 1500, condominio: 0, iptu: 110,
-    descricao: "Casa térrea com pátio nos fundos, perto de escolas e do comércio do bairro.",
-    fotos: [f("casa-patio", "Casa com varanda"), f("sala-2", "Sala de estar com escada"), f("cozinha", "Cozinha")],
-    corretor: rafaela, status: "disponivel", publicadoEm: "2026-09-30",
-  },
-  {
-    codigo: "CL-0158", titulo: "Studio mobiliado no Bonfim", tipo: "studio", bairro: "Bonfim",
-    regiao: { lat: -29.6905, lon: -53.8165 }, quartos: 1, banheiros: 1, area: 30, vagas: 0,
-    mobiliado: true, aceitaPet: false, paraDividir: false, aluguel: 980, condominio: 190, iptu: 45,
-    descricao: "Studio novo e mobiliado, perto do Calçadão. Ônibus para a UFSM na esquina.",
-    fotos: [f("studio-2", "Studio com sofá e cozinha"), f("sala-3", "Sala com poltronas"), f("predio-2", "Fachada do prédio")],
-    corretor: diego, status: "disponivel", publicadoEm: "2026-10-17",
-  },
-  {
-    codigo: "CL-0161", titulo: "Apartamento 2 quartos perto da UFSM", tipo: "apartamento", bairro: "Camobi",
-    regiao: { lat: -29.7195, lon: -53.7105 }, quartos: 2, banheiros: 1, area: 60, vagas: 1,
-    mobiliado: false, aceitaPet: false, paraDividir: true, aluguel: 1300, condominio: 240, iptu: 60,
-    descricao: "Dois quartos a 10 minutos a pé do campus, com sacada e churrasqueira.",
-    fotos: [f("sala-2", "Sala integrada"), f("dividir", "Quarto com duas camas"), f("cozinha", "Cozinha")],
-    corretor: bruna, status: "disponivel", publicadoEm: "2026-10-21",
-  },
-];
-
 // Distância em linha reta até a UFSM (km) e minutos a pé (andando por ruas ≈ 1,3× a linha reta, 5 km/h)
 function km(a: { lat: number; lon: number }, b: { lat: number; lon: number }) {
   const r = (g: number) => (g * Math.PI) / 180;
@@ -164,15 +58,50 @@ export function completar(m: Imovel): ImovelCompleto {
   return { ...m, total: m.aluguel + m.condominio + m.iptu, kmUfsm, minUfsm, categorias };
 }
 
-// Só o que aparece no site público (alugados ficam de fora; reservados aparecem com aviso)
+type Linha = {
+  codigo: string; titulo: string; tipo: TipoImovel; bairro: string; lat: number; lon: number;
+  quartos: number; banheiros: number; area: number; vagas: number;
+  mobiliado: boolean; aceita_pet: boolean; para_dividir: boolean;
+  aluguel: number; condominio: number; iptu: number; descricao: string; status: Status; publicado_em: string;
+  fotos: { caminho: string; alt: string; ordem: number }[];
+  corretor: { id: string; nome: string; creci: string | null; whatsapp: string } | null;
+};
+
+const COLUNAS = `codigo, titulo, tipo, bairro, lat, lon, quartos, banheiros, area, vagas, mobiliado, aceita_pet, para_dividir,
+  aluguel, condominio, iptu, descricao, status, publicado_em,
+  fotos (caminho, alt, ordem), corretor:perfis (id, nome, creci, whatsapp)`;
+
+function converter(l: Linha): Imovel {
+  return {
+    codigo: l.codigo, titulo: l.titulo, tipo: l.tipo, bairro: l.bairro, regiao: { lat: l.lat, lon: l.lon },
+    quartos: l.quartos, banheiros: l.banheiros, area: l.area, vagas: l.vagas,
+    mobiliado: l.mobiliado, aceitaPet: l.aceita_pet, paraDividir: l.para_dividir,
+    aluguel: l.aluguel, condominio: l.condominio, iptu: l.iptu, descricao: l.descricao,
+    fotos: [...l.fotos].sort((a, b) => a.ordem - b.ordem).map((f) => ({ url: urlFoto(f.caminho), alt: f.alt })),
+    corretor: { id: l.corretor?.id ?? "", nome: l.corretor?.nome ?? "Equipe Chave Leve", creci: l.corretor?.creci ?? "", whatsapp: l.corretor?.whatsapp ?? "" },
+    status: l.status,
+    publicadoEm: l.publicado_em.slice(0, 10),
+  };
+}
+
+// Só o que aparece no site público (o banco já esconde rascunhos e alugados; reservados aparecem com aviso).
+// Fica em cache; o painel (parte 3) avisa quando algo mudar (tag "imoveis").
 export async function listarImoveis(): Promise<ImovelCompleto[]> {
-  return base
-    .filter((m) => m.status !== "alugado")
-    .map(completar)
-    .sort((a, b) => b.publicadoEm.localeCompare(a.publicadoEm));
+  "use cache";
+  cacheLife("hours");
+  cacheTag("imoveis");
+  const { data, error } = await supabasePublico
+    .from("imoveis")
+    .select(COLUNAS)
+    .in("status", ["disponivel", "reservado"])
+    .order("publicado_em", { ascending: false })
+    .returns<Linha[]>();
+  if (error) throw new Error(`Supabase: ${error.message}`);
+  return data.map((l) => completar(converter(l)));
 }
 
 export async function buscarImovel(codigo: string): Promise<ImovelCompleto | null> {
-  const m = base.find((x) => x.codigo.toLowerCase() === codigo.toLowerCase() && x.status !== "alugado");
-  return m ? completar(m) : null;
+  if (!/^CL-\d{4}$/i.test(codigo)) return null;
+  const lista = await listarImoveis();
+  return lista.find((m) => m.codigo.toLowerCase() === codigo.toLowerCase()) ?? null;
 }

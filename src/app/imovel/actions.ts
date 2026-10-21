@@ -1,8 +1,9 @@
 "use server";
 
 // Pedido de visita. Valida tudo de novo no servidor (o navegador pode ser burlado).
-// Parte 1: modo demonstração (valida e responde). Parte 2: grava em `visitas` no Supabase.
+// Grava em `visitas` (Supabase). O banco só aceita criar pedido, nunca ler: confere de novo o imóvel e a data.
 import type { EstadoVisita } from "@/data/visita";
+import { supabasePublico } from "@/lib/supabase";
 
 const TEMPO_MINIMO_MS = 2500;
 const TEMPO_MAXIMO_MS = 24 * 60 * 60 * 1000;
@@ -37,6 +38,20 @@ export async function pedirVisita(_anterior: EstadoVisita, fd: FormData): Promis
   if (!/^CL-\d{4}$/.test(valores.codigo)) return { status: "erro", mensagem: "Imóvel inválido. Atualize a página e tente de novo." };
   if (Object.keys(erros).length) return { status: "erro", erros, valores, mensagem: "Confira os campos marcados." };
 
-  // TODO parte 2: inserir em `visitas` (Supabase, chave anônima + RLS só de inserção)
+  const falha: EstadoVisita = { status: "erro", valores, mensagem: "Não foi possível enviar agora. Tente de novo em instantes ou chame no WhatsApp." };
+  const { data: imovel } = await supabasePublico.from("imoveis").select("id").eq("codigo", valores.codigo).maybeSingle();
+  if (!imovel) return { status: "erro", mensagem: "Este imóvel não está mais disponível. Atualize a página." };
+
+  const { error } = await supabasePublico.from("visitas").insert({
+    imovel_id: imovel.id,
+    nome: valores.nome,
+    whatsapp: digitos,
+    dia: valores.dia,
+    turno: valores.turno,
+  });
+  if (error) {
+    console.error("visitas.insert", error.code, error.message);
+    return falha;
+  }
   return { status: "enviado", demonstracao: true };
 }

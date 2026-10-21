@@ -59,7 +59,7 @@ function Formulario({ codigo, titulo }: { codigo: string; titulo: string }) {
         </span>
         <Drawer.Title className="mt-3 font-titulo text-[22px] font-semibold tracking-[-0.03em]">Pedido enviado</Drawer.Title>
         <p className="mt-1 text-suave">O corretor confirma pelo WhatsApp em até 2 horas.</p>
-        {estado.demonstracao && <p className="mt-3 text-[14px] text-suave">Site de demonstração: o pedido foi validado, mas não foi enviado a ninguém.</p>}
+        {estado.demonstracao && <p className="mt-3 text-[14px] text-suave">Site de demonstração: o pedido foi para o painel de exemplo da imobiliária. Ninguém vai entrar em contato.</p>}
         <Drawer.Close className="botao botao-contorno mt-5">Fechar</Drawer.Close>
       </div>
     );

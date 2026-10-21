@@ -14,6 +14,10 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   poweredByHeader: false,
+  images: {
+    // Fotos dos imóveis vêm do armazenamento do Supabase (bucket público "fotos")
+    remotePatterns: [new URL(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/fotos/**`)],
+  },
   async headers() {
     return [{ source: "/:path*", headers: seguranca }];
   },

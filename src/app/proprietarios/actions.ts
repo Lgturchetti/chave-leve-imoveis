@@ -1,7 +1,8 @@
 "use server";
 
-// Proprietário interessado. Parte 1: modo demonstração. Parte 2: grava em `proprietarios` (Supabase).
+// Proprietário interessado: grava em `proprietarios` (Supabase; o público só cria, nunca lê).
 import type { EstadoProprietario } from "@/data/proprietario";
+import { supabasePublico } from "@/lib/supabase";
 
 function texto(fd: FormData, campo: string, max: number) {
   const v = fd.get(campo);
@@ -26,6 +27,15 @@ export async function enviarProprietario(_anterior: EstadoProprietario, fd: Form
   if (valores.bairro.length < 2) erros.bairro = "Em que bairro fica o imóvel?";
   if (Object.keys(erros).length) return { status: "erro", erros, valores, mensagem: "Confira os campos marcados." };
 
-  // TODO parte 2: inserir em `proprietarios` (Supabase)
+  const { error } = await supabasePublico.from("proprietarios").insert({
+    nome: valores.nome,
+    whatsapp: d,
+    bairro: valores.bairro,
+    mensagem: valores.mensagem || null,
+  });
+  if (error) {
+    console.error("proprietarios.insert", error.code, error.message);
+    return { status: "erro", valores, mensagem: "Não foi possível enviar agora. Tente de novo em instantes ou chame no WhatsApp." };
+  }
   return { status: "enviado", demonstracao: true };
 }

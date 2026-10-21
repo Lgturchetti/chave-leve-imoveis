@@ -35,7 +35,7 @@ export function FormularioProprietario() {
       <div ref={aviso} tabIndex={-1} role="status" className="entra mt-6 rounded-2xl bg-limao/40 p-6 outline-none">
         <p className="font-titulo text-[22px] font-semibold tracking-[-0.03em]">Recebemos seu contato.</p>
         <p className="mt-1">Respondemos pelo WhatsApp em até 1 dia útil.</p>
-        {estado.demonstracao && <p className="mt-3 text-[14px] text-suave">Site de demonstração: nada foi enviado.</p>}
+        {estado.demonstracao && <p className="mt-3 text-[14px] text-suave">Site de demonstração: o contato foi para o painel de exemplo. Ninguém vai entrar em contato.</p>}
       </div>
     );
   }

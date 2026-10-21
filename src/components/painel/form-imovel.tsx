@@ -43,11 +43,25 @@ type Props = {
 
 export function FormImovel({ imovel, bairros, corretores, dono, qtdFotos = 0 }: Props) {
   const [estado, acao, salvando] = useActionState<EstadoImovel, FormData>(salvarImovel, { status: "inicial" });
-  const [ponto, setPonto] = useState(imovel ? { lat: imovel.lat, lon: imovel.lon } : null);
+  const [ponto, setPontoBruto] = useState(imovel ? { lat: imovel.lat, lon: imovel.lon } : null);
+  // Avisa antes de sair da página com alterações não salvas (fechar aba, recarregar, link externo)
+  const [alterado, setAlterado] = useState(false);
+  const setPonto = (p: { lat: number; lon: number } | null) => {
+    setPontoBruto(p);
+    setAlterado(true);
+  };
   const [bairro, setBairro] = useState(imovel?.bairro ?? "");
   const [descricao, setDescricao] = useState(imovel?.descricao ?? "");
   const aviso = useRef<HTMLDivElement>(null);
   const novo = !imovel;
+
+  const sujo = alterado || estado.status === "erro"; // recusado pelo servidor = ainda não salvo
+  useEffect(() => {
+    if (!sujo) return;
+    const avisar = (e: BeforeUnloadEvent) => e.preventDefault();
+    window.addEventListener("beforeunload", avisar);
+    return () => window.removeEventListener("beforeunload", avisar);
+  }, [sujo]);
 
   useEffect(() => {
     if (estado.status === "inicial") return;
@@ -65,10 +79,13 @@ export function FormImovel({ imovel, bairros, corretores, dono, qtdFotos = 0 }: 
     <form
       onSubmit={(e) => {
         e.preventDefault();
+        setAlterado(false);
         const fd = new FormData(e.currentTarget);
         startTransition(() => acao(fd));
       }}
+      onInput={() => setAlterado(true)}
       noValidate
+      autoComplete="off"
       className="grid gap-6"
       data-form-imovel
     >

@@ -178,11 +178,11 @@ function NovaPessoa({ aoCriar }: { aoCriar: (r: ResultadoSenha) => void }) {
       </label>
       <label className={rotulo}>
         WhatsApp
-        <input name="whatsapp" type="tel" inputMode="tel" required maxLength={20} placeholder="(55) 99999-9999" className={`${campo} placeholder:text-suave`} />
+        <input name="whatsapp" type="tel" inputMode="tel" required maxLength={20} autoComplete="off" placeholder="(55) 99999-9999" className={`${campo} placeholder:text-suave`} />
       </label>
       <label className={rotulo}>
         CRECI <span className="font-normal text-suave">(opcional)</span>
-        <input name="creci" maxLength={40} className={campo} />
+        <input name="creci" maxLength={40} autoComplete="off" className={campo} />
       </label>
       <div className="flex gap-2 sm:col-span-2">
         <button type="submit" disabled={enviando} className="botao botao-acao">

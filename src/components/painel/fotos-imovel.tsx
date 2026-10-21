@@ -135,6 +135,9 @@ export function FotosImovel({ imovelId, titulo, fotosIniciais, urlBase, demo = f
             Fotos <span className="font-sans text-[15px] font-normal tracking-normal text-suave tabular-nums">{fotos.length}/{MAX}</span>
           </h2>
           <p className="mt-1 text-[15px] text-suave">A primeira é a capa. Arraste pela alça para mudar a ordem.</p>
+          <p role={aviso?.tipo === "erro" ? "alert" : "status"} className={`mt-1 text-[14px] font-semibold ${aviso?.tipo === "erro" ? "text-red-800" : "text-acao"}`}>
+            {aviso?.texto}
+          </p>
         </div>
         {demo ? (
           <button type="button" aria-expanded={biblioteca} aria-controls="biblioteca-fotos" onClick={() => setBiblioteca((b) => !b)} className="botao botao-acao botao-pequeno">
@@ -176,9 +179,6 @@ export function FotosImovel({ imovelId, titulo, fotosIniciais, urlBase, demo = f
         </div>
       )}
 
-      <p role={aviso?.tipo === "erro" ? "alert" : "status"} className={`min-h-[1.5em] text-[14px] ${aviso?.tipo === "erro" ? "text-red-800" : "text-suave"}`}>
-        {aviso?.texto}
-      </p>
 
       {fotos.length === 0 && !enviando ? (
         <button
@@ -189,7 +189,7 @@ export function FotosImovel({ imovelId, titulo, fotosIniciais, urlBase, demo = f
           {demo ? "Nenhuma foto ainda. Toque para escolher da biblioteca." : "Nenhuma foto ainda. Toque para escolher do celular ou do computador."}
         </button>
       ) : (
-        <DndContext sensors={sensores} collisionDetection={closestCenter} onDragEnd={aoSoltar} accessibility={{ screenReaderInstructions: { draggable: "Para mover, aperte espaço, use as setas e aperte espaço de novo para soltar." } }}>
+        <DndContext id="fotos-imovel" sensors={sensores} collisionDetection={closestCenter} onDragEnd={aoSoltar} accessibility={{ screenReaderInstructions: { draggable: "Para mover, aperte espaço, use as setas e aperte espaço de novo para soltar." } }}>
           <SortableContext items={fotos.map((f) => f.id)} strategy={rectSortingStrategy}>
             <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
               {fotos.map((f, i) => (

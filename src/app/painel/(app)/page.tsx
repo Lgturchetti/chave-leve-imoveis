@@ -35,7 +35,7 @@ async function Conteudo() {
       <h1 className="text-[clamp(26px,4vw,34px)]">Olá, {perfil.nome.split(" ")[0]}</h1>
       <p className="mt-1 text-suave">{dono ? "Resumo da imobiliária." : "Resumo dos seus imóveis."}</p>
 
-      <ul className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
+      <ul className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5 [&>li:last-child:nth-child(odd)]:col-span-2 md:[&>li:last-child:nth-child(odd)]:col-span-1">
         {cartoes.map((c) => (
           <li key={c.nome}>
             <Link

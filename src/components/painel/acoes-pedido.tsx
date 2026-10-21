@@ -31,7 +31,8 @@ export function AcoesPedido({ tabela, id, botoes, whatsapp }: { tabela: "visitas
                 if (r.erro) setErro(r.erro);
               })
             }
-            className={`botao botao-pequeno ${b.principal ? "botao-acao" : "botao-contorno"}`}
+            // Ação secundária (cancelar, descartar, reabrir) vira texto à direita: cabe na mesma linha no celular
+            className={b.principal ? "botao botao-pequeno botao-acao" : "botao botao-pequeno ml-auto px-3 text-suave underline-offset-4 transition-colors hover:text-tinta hover:underline"}
           >
             {b.nome}
           </button>

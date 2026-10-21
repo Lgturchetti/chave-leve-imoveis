@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
 import { AgendarVisita } from "@/components/agendar-visita";
 import { BotaoFavorito } from "@/components/botao-favorito";
 import { CartaoImovel } from "@/components/cartao-imovel";
@@ -27,31 +26,13 @@ export async function generateMetadata({ params }: PageProps<"/imovel/[codigo]">
   };
 }
 
-// O código do endereço é lido dentro do Suspense: a navegação mostra o esqueleto na hora
-// (Next 16, "instant navigation") e o anúncio entra assim que os dados chegam.
-export default function Pagina({ params }: PageProps<"/imovel/[codigo]">) {
-  return <Suspense fallback={<Esqueleto />}>{params.then(({ codigo }) => <Anuncio codigo={codigo} />)}</Suspense>;
-}
+// Next 16 avisa quando a página lê o código do endereço fora de um Suspense. Aqui é de propósito:
+// os anúncios são gerados prontos no build (generateStaticParams), então a página abre inteira, sem
+// esqueleto trocando de lugar (que fazia o rodapé pular, CLS 0,2) e com 404 de verdade para código inexistente.
+export const instant = false;
 
-function Esqueleto() {
-  return (
-    <div className="mx-auto max-w-[1240px] px-margem pb-32 lg:pb-16" aria-busy="true" aria-label="Carregando o anúncio">
-      <div className="py-3">
-        <Link href="/" className="botao botao-contorno botao-pequeno">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
-          Imóveis
-        </Link>
-      </div>
-      <div className="-mx-[max(1rem,env(safe-area-inset-left,0px))] aspect-[4/3] animate-pulse bg-[#e5e9f0] sm:mx-0 sm:aspect-[2/1] sm:rounded-cartao" />
-      <div className="mt-6 grid gap-3 lg:w-[60%]">
-        <div className="h-9 w-4/5 animate-pulse rounded-xl bg-[#e5e9f0]" />
-        <div className="h-5 w-1/2 animate-pulse rounded-lg bg-[#e5e9f0]" />
-      </div>
-    </div>
-  );
-}
-
-async function Anuncio({ codigo }: { codigo: string }) {
+export default async function Anuncio({ params }: PageProps<"/imovel/[codigo]">) {
+  const { codigo } = await params;
   const m = await buscarImovel(codigo);
   if (!m) notFound();
 

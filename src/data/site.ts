@@ -6,7 +6,7 @@ export const site = {
   nomeCurto: "Chave Leve", // cabeçalho: até ~14 caracteres
   descricao:
     "Aluguel em Santa Maria sem precisar ir até a imobiliária: kitnets e apartamentos perto da UFSM, fotos de verdade, custo total na hora e visita agendada pelo site.",
-  url: "https://chave-leve.vercel.app",
+  url: "https://chave-leve-imoveis.vercel.app",
   endereco: "Rua Fictícia, 789, sala 4 — Camobi, Santa Maria/RS",
   whatsapp: "5555900000000", // número de exemplo
   telefone: "(55) 3000-0000", // número de exemplo

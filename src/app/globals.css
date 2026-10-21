@@ -40,6 +40,12 @@
     -webkit-text-size-adjust: 100%;
     -webkit-tap-highlight-color: transparent;
   }
+  /* Texto de exemplo nos campos com contraste 4,7:1 (o padrão do navegador ficava em 3,5:1) */
+  input::placeholder,
+  textarea::placeholder {
+    color: #6f7480;
+    opacity: 1;
+  }
   @media (prefers-reduced-motion: no-preference) {
     html {
       scroll-behavior: smooth;

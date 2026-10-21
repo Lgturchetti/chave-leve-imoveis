@@ -47,7 +47,7 @@ Os imóveis ficam em cache por até 1 hora (tag `imoveis`); o painel vai limpar 
 - Testado em 21/10/2026: 23 ataques como visitante (todos barrados ou permitidos como esperado), limpeza, dona e corretora sem mudança.
 
 ## A fazer no painel do Supabase (pelo Lorenzo, 1 minuto)
-- Authentication → Sign In / Providers → desligar **"Allow new users to sign up"** (só o dono cria contas; hoje quem se cadastrasse sozinho não veria nada, mas é melhor fechar a porta).
+- Authentication → Sign In / Providers → **"Allow new users to sign up" desligado** pelo Lorenzo (21/10/2026). ✔
 
 ## Revisão de segurança manual (21/10/2026)
 - Cabeçalhos HTTP de segurança no `next.config.ts`; nenhuma chave secreta no site; `.env*` e `ACESSOS.local.md` fora do Git; nenhum HTML vindo do usuário renderizado sem escape.
